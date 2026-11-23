@@ -1,0 +1,349 @@
+# Semantic contract: mv_fbl_batting (consumer-facing).
+# exprHash = fingerprint of each formula. If a formula changes, lint fails until the version is bumped and `contract_tool.py stamp` is run.
+apiVersion: v3.1.0
+kind: DataContract
+id: fbl.semantic.mv_fbl_batting
+name: mv_fbl_batting (semantic)
+version: 1.0.0
+status: active
+domain: baseball_operations
+dataProduct: fbl
+description:
+  purpose: Governed batting metrics for the Fictional Baseball League. Consumers group and filter by season, player,
+    team, league, city, position or batting hand.
+  limitations: OBP and OPS are approximations (no hit-by-pitch or sacrifice-fly data). Distinct counts (batters)
+    cannot be summed across groups. Only rows that passed silver quality are included.
+  usage: SELECT dim, MEASURE(measure) FROM semantic.mv_fbl_batting GROUP BY dim. Do not query the gold tables directly
+    for ratios.
+tags:
+- fbl
+- semantic
+customProperties:
+- property: layer
+  value: semantic
+- property: owner
+  value: Analytics Engineering
+- property: strictTypes
+  value: false
+slaProperties:
+- property: freshness
+  value: 24
+  unit: h
+  element: mv_fbl_batting
+- property: frequency
+  value: 1
+  unit: d
+  element: mv_fbl_batting
+schema:
+- name: mv_fbl_batting
+  physicalName: semantic.mv_fbl_batting
+  logicalType: object
+  physicalType: view
+  description: Governed batting metrics for the Fictional Baseball League. Consumers group and filter by season,
+    player, team, league, city, position or batting hand.
+  customProperties:
+  - property: definition
+    value: sql/fbl/metric_views/mv_fbl_batting.sql
+  - property: dependsOn
+    value:
+    - gold.fbl_fact_batting
+    - gold.fbl_dim_player
+    - gold.fbl_dim_team
+  - property: consumers
+    value:
+    - bi_dashboards
+    - genie_space_fbl
+  properties:
+  - name: season
+    logicalType: integer
+    required: false
+    description: Season year.
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 18c81f0acf57
+  - name: player_name
+    logicalType: string
+    required: false
+    description: Player full name.
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: d28d7eea452f
+  - name: batting_hand
+    logicalType: string
+    required: false
+    description: Bats
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: f755b3fc8eba
+  - name: position
+    logicalType: string
+    required: false
+    description: Position
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 1a3e9d68531f
+  - name: team_name
+    logicalType: string
+    required: false
+    description: Team name.
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: a6a8b4c76709
+  - name: league
+    logicalType: string
+    required: false
+    description: League (North or South).
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 58a3bb6e9d5f
+  - name: city
+    logicalType: string
+    required: false
+    description: City
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 7f824915493f
+  - name: games
+    logicalType: integer
+    required: false
+    description: Games
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 2c693824fe80
+  - name: at_bats
+    logicalType: integer
+    required: false
+    description: At Bats
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 049e5740b70b
+  - name: hits
+    logicalType: integer
+    required: false
+    description: Hits
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: c37ec28232c8
+  - name: doubles
+    logicalType: integer
+    required: false
+    description: Doubles
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: ff5094558c95
+  - name: triples
+    logicalType: integer
+    required: false
+    description: Triples
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: f713219e2a51
+  - name: home_runs
+    logicalType: integer
+    required: false
+    description: Home Runs
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 5c00cce45643
+  - name: rbi
+    logicalType: integer
+    required: false
+    description: RBI
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 7931f243ed37
+  - name: walks
+    logicalType: integer
+    required: false
+    description: Walks
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 49499ba878d5
+  - name: strikeouts
+    logicalType: integer
+    required: false
+    description: Strikeouts
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: b8058a5fd825
+  - name: stolen_bases
+    logicalType: integer
+    required: false
+    description: Stolen Bases
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: d86519884e33
+  - name: batting_avg
+    logicalType: number
+    required: false
+    description: Summed hits / summed at bats. Never average player averages.
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: d6c4f4e83168
+  - name: on_base_pct_approx
+    logicalType: number
+    required: false
+    description: On-Base Percentage (approx)
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: bad3b89f4bc8
+  - name: slugging_pct
+    logicalType: number
+    required: false
+    description: Slugging Percentage
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: e895bedadcdb
+  - name: ops_approx
+    logicalType: number
+    required: false
+    description: OPS (approx)
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: d09e5a2b8d9e
+  - name: home_run_rate
+    logicalType: number
+    required: false
+    description: Home Run Rate (per at bat)
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: aa8e24520508
+  - name: batters
+    logicalType: integer
+    required: false
+    description: Distinct players. Non-additive.
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: f9aadfad8d87
+  quality:
+  - name: SEM-FBLB-001
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: Home runs by team in the metric view equal the sum from the gold fact.
+    implementation:
+      test_type: reconcile
+      dimensions:
+      - team_name
+      measures:
+      - home_runs
+      tolerance: 0
+      compare_sql: SELECT t.team_name, SUM(f.hr) AS home_runs FROM gold.fbl_fact_batting f JOIN gold.fbl_dim_team
+        t ON f.team_id = t.team_id GROUP BY t.team_name
+  - name: SEM-FBLB-002
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: Batting average by league equals summed hits over summed at bats from the gold fact (no average
+      of averages).
+    implementation:
+      test_type: reconcile
+      dimensions:
+      - league
+      measures:
+      - batting_avg
+      tolerance: 1.0e-09
+      compare_sql: SELECT t.league, SUM(f.h) / NULLIF(SUM(f.ab), 0) AS batting_avg FROM gold.fbl_fact_batting f
+        JOIN gold.fbl_dim_team t ON f.team_id = t.team_id GROUP BY t.league
+  - name: SEM-FBLB-003
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: Distinct batters per team equals the distinct players in the fact (distinct counts are not additive).
+    implementation:
+      test_type: reconcile
+      dimensions:
+      - team_name
+      measures:
+      - batters
+      tolerance: 0
+      compare_sql: SELECT t.team_name, COUNT(DISTINCT f.player_id) AS batters FROM gold.fbl_fact_batting f JOIN
+        gold.fbl_dim_team t ON f.team_id = t.team_id GROUP BY t.team_name
+  - name: SEM-FBLB-004
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: League-wide totals match the fact table.
+    implementation:
+      test_type: reconcile
+      dimensions: []
+      measures:
+      - home_runs
+      - hits
+      - at_bats
+      tolerance: 0
+      compare_sql: SELECT SUM(hr) AS home_runs, SUM(h) AS hits, SUM(ab) AS at_bats FROM gold.fbl_fact_batting
+  - name: SEM-FBLB-005
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: Rates stay between 0 and 1 for every team and season.
+    implementation:
+      test_type: bounds
+      dimensions:
+      - team_name
+      - season
+      bounds:
+        batting_avg:
+        - 0
+        - 1
+        on_base_pct_approx:
+        - 0
+        - 1
+        slugging_pct:
+        - 0
+        - 4
+        home_run_rate:
+        - 0
+        - 1
