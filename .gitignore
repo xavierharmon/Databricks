@@ -1,0 +1,55 @@
+# === Secrets & credentials ===
+# Environment variable files (never commit real values; commit .env.example instead)
+.env
+.env.*
+!.env.example
+
+# Databricks local CLI config (can contain tokens)
+.databricks/
+*.databricks.cfg
+databricks.cfg
+
+# Token / key / credential files
+*.pem
+*.key
+*.keystore
+id_rsa*
+*credentials*.json
+*credential*.json
+secrets.json
+secrets.yaml
+secrets.yml
+secrets.toml
+*.token
+*_token.txt
+
+# Generic sensitive file names
+*.secret
+
+# === Databricks / Spark artifacts ===
+# Local spark-warehouse and Derby metastore from local Spark runs
+spark-warehouse/
+derby.log
+metastore_db/
+
+# MLflow local tracking artifacts
+mlruns/
+
+# === Python ===
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# === Notebooks / IDE ===
+.ipynb_checkpoints/
+.vscode/
+.idea/
+
+# === OS / misc ===
+.DS_Store
+Thumbs.db
+*.log
