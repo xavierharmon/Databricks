@@ -1,0 +1,74 @@
+apiVersion: v3.1.0 # which ODCS version this file follows
+kind: DataContract # always this for a contract
+id: fbl.source.team # <dataProduct>.<layer>.<name>. It must match dataProduct and layer below
+name: <a readable name>
+version: 1.0.0 # semantic version: bump it whenever behaviour changes
+status: active # draft | active | deprecated
+domain: baseball_operations
+dataProduct: fbl # groups contracts; the runner runs one product at a time
+description:
+  purpose: `The teams.csv file sent in by the Leage office. Promises the listed columns are present and the file is not empty.`
+  limitations: `Values arrive as text or strings and may be blank, duplicated, improper case, or invalid. Row-level validity is NOT promised here; silver enforces that.`
+  usage: Load the csv data as strings into the Bronze layer without any cleansing.
+customProperties: # ODCS's extension point: anything the standard has no field for
+  - property: layer
+  value: source # source | silver | gold | semantic: decides which stage reads this contract
+  - property: owner
+  value: Baseball Operations
+schema:
+  - name: fbl_team # the logical table name
+    physicalName: bronze.fbl_team # schema.table the bronze step will write
+    logicalType: object
+    physicalType: table
+    customProperties:
+    - property: entity # the short key the runner uses: bronze:team, silver:team
+      value: team
+    - property: landingFolder # the folder under the landing directory that holds the file
+      value: teams
+  quality:
+    - metric: rowCount # an ODCS library metric
+      mustBeGreaterThan: 0
+      type: library
+      severity: error
+      description: The file delivered to bronze is not empty and contains at least one record.
+  properties:
+  - name: team_id
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Team identifier, e.g. T01. Primary key. (raw text, present in the file header)
+  - name: team_name
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Full team name. (raw text, present in the file header)
+  - name: city
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Home city. (raw text, present in the file header)
+  - name: league
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: 'League: North or South. (raw text, present in the file header)'
+  - name: founded_year
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Year the franchise was founded (league started in 2000). (raw text, present in the file header)
+  - name: home_park
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Home ballpark. (raw text, present in the file header)
+  - name: payroll_cap_musd
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Payroll cap in millions of USD. Must be positive. (raw text, present in the file header)
+  - name: mascot
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: 'Team mascot. Optional: shown as ''None'' in gold. (raw text, present in the file header)'
