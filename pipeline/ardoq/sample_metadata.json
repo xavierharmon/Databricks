@@ -1,0 +1,20 @@
+{
+  "assets": [
+    {"full_name": "mlb_prod.bronze.lahman_batting", "schema": "bronze", "name": "lahman_batting", "table_type": "MANAGED", "comment": "Raw batting CSV", "owner": "data_engineering"},
+    {"full_name": "mlb_prod.silver.batting_season", "schema": "silver", "name": "batting_season", "table_type": "MANAGED", "comment": "Typed batting by player-season-stint", "owner": "data_engineering"},
+    {"full_name": "mlb_prod.gold.fact_batting_season", "schema": "gold", "name": "fact_batting_season", "table_type": "MANAGED", "comment": "Additive batting facts", "owner": "data_engineering"},
+    {"full_name": "mlb_prod.gold.dim_season", "schema": "gold", "name": "dim_season", "table_type": "MANAGED", "comment": "Season and era", "owner": "data_engineering"},
+    {"full_name": "mlb_prod.semantic.mv_batting", "schema": "semantic", "name": "mv_batting", "table_type": "METRIC_VIEW", "comment": "Batting metrics", "owner": "analytics_engineering"}
+  ],
+  "lineage": [
+    {"source": "mlb_prod.bronze.lahman_batting", "target": "mlb_prod.silver.batting_season"},
+    {"source": "mlb_prod.silver.batting_season", "target": "mlb_prod.gold.fact_batting_season"},
+    {"source": "mlb_prod.gold.fact_batting_season", "target": "mlb_prod.semantic.mv_batting"},
+    {"source": "mlb_prod.gold.dim_season", "target": "mlb_prod.semantic.mv_batting"}
+  ],
+  "terms": [
+    {"term": "Batting Average", "definition": "Share of at bats that are hits.", "formula": "SUM(H) / SUM(AB)", "owner": "Baseball Analytics", "related_asset": "semantic.mv_batting.batting_avg"},
+    {"term": "Era", "definition": "Business-defined grouping of seasons.", "formula": "", "owner": "Baseball Analytics", "related_asset": "gold.dim_season.era"},
+    {"term": "Bronze", "definition": "Raw landed data.", "formula": "", "owner": "Data Engineering", "related_asset": "catalog.bronze.*"}
+  ]
+}

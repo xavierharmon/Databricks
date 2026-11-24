@@ -1,0 +1,19 @@
+# Copy to ardoq/config.yml (git-ignored) and fill in IDs from YOUR Ardoq metamodel.
+# Find them with:  GET {base_url}/api/v2/workspaces/{workspace_id}/context   (Authorization: Bearer <token>)
+base_url: https://YOURORG.ardoq.com
+workspace_id: "REPLACE_WITH_WORKSPACE_OID"        # an Ardoq workspace such as "Data Platform - Databricks"
+
+component_types:                                   # typeId values (strings like "p1024822409134")
+  catalog: "REPLACE"
+  schema: "REPLACE"
+  table: "REPLACE"
+  metric_view: "REPLACE"
+  business_term: "REPLACE"
+
+reference_types:                                   # numeric reference type ids
+  lineage: 1        # data asset -> data asset ("feeds")
+  defines: 2        # business term -> data asset ("defines")
+
+schemas: [bronze, silver, gold, semantic]          # UC schemas to mirror
+custom_fields: false                               # true = also send layer/owner/table_type if your component types have those fields
+prune: false                                       # true = delete Ardoq components of these types that are no longer in Unity Catalog
