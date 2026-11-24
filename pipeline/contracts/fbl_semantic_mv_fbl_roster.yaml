@@ -1,0 +1,202 @@
+# Semantic contract: mv_fbl_roster (consumer-facing).
+apiVersion: v3.1.0
+kind: DataContract
+id: fbl.semantic.mv_fbl_roster
+name: mv_fbl_roster (semantic)
+version: 1.0.0
+status: active
+domain: baseball_operations
+dataProduct: fbl
+description:
+  purpose: 'Governed roster metrics for the Fictional Baseball League: headcount, average height and weight, switch
+    hitters, by team, league, position and handedness.'
+  limitations: 'Roster only: one row per player in the dimension. Contains no performance statistics. Personal data
+    (birth date) is not exposed here.'
+  usage: SELECT dim, MEASURE(measure) FROM semantic.mv_fbl_roster GROUP BY dim.
+tags:
+- fbl
+- semantic
+customProperties:
+- property: layer
+  value: semantic
+- property: owner
+  value: Analytics Engineering
+- property: strictTypes
+  value: false
+slaProperties:
+- property: freshness
+  value: 24
+  unit: h
+  element: mv_fbl_roster
+- property: frequency
+  value: 1
+  unit: d
+  element: mv_fbl_roster
+schema:
+- name: mv_fbl_roster
+  physicalName: semantic.mv_fbl_roster
+  logicalType: object
+  physicalType: view
+  description: 'Governed roster metrics for the Fictional Baseball League: headcount, average height and weight,
+    switch hitters, by team, league, position and handedness.'
+  customProperties:
+  - property: definition
+    value: sql/fbl/metric_views/mv_fbl_roster.sql
+  - property: dependsOn
+    value:
+    - gold.fbl_dim_player
+    - gold.fbl_dim_team
+  - property: consumers
+    value:
+    - bi_dashboards
+  properties:
+  - name: team_name
+    logicalType: string
+    required: false
+    description: Team name.
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: a6a8b4c76709
+  - name: league
+    logicalType: string
+    required: false
+    description: League (North or South).
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 58a3bb6e9d5f
+  - name: position
+    logicalType: string
+    required: false
+    description: Position
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: ff6877ec3c1f
+  - name: batting_hand
+    logicalType: string
+    required: false
+    description: Bats
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 133a7855692e
+  - name: throwing_hand
+    logicalType: string
+    required: false
+    description: Throws
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: c6e57813abc5
+  - name: players
+    logicalType: integer
+    required: false
+    description: Number of players. Count of rows in the player dimension.
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 5c14c3cbd2d3
+  - name: avg_height_in
+    logicalType: number
+    required: false
+    description: Average Height (in)
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: bb63b5fb2561
+  - name: avg_weight_lb
+    logicalType: number
+    required: false
+    description: Average Weight (lb)
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 7235c822efd3
+  - name: switch_hitters
+    logicalType: integer
+    required: false
+    description: Switch Hitters
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 465e950936e5
+  - name: teams
+    logicalType: integer
+    required: false
+    description: Distinct Teams
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 260af457735d
+  quality:
+  - name: SEM-FBLR-001
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: Players per team equals the player dimension counts.
+    implementation:
+      test_type: reconcile
+      dimensions:
+      - team_name
+      measures:
+      - players
+      tolerance: 0
+      compare_sql: SELECT t.team_name, COUNT(*) AS players FROM gold.fbl_dim_player p JOIN gold.fbl_dim_team t ON
+        p.team_id = t.team_id GROUP BY t.team_name
+  - name: SEM-FBLR-002
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: Average height is plausible for every team and position.
+    implementation:
+      test_type: bounds
+      dimensions:
+      - team_name
+      - position
+      bounds:
+        avg_height_in:
+        - 60
+        - 84
+  - name: SEM-FBLR-004
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: warning
+    description: 'Average weight is plausible. WARNING level: silver only warns about odd weights (PLR-008), so
+      this test surfaces any that reached gold.'
+    implementation:
+      test_type: bounds
+      dimensions:
+      - team_name
+      - position
+      bounds:
+        avg_weight_lb:
+        - 120
+        - 350
+  - name: SEM-FBLR-003
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: Total players equals the player dimension row count.
+    implementation:
+      test_type: reconcile
+      dimensions: []
+      measures:
+      - players
+      tolerance: 0
+      compare_sql: SELECT COUNT(*) AS players FROM gold.fbl_dim_player

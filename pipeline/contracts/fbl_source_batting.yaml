@@ -1,0 +1,121 @@
+# Source contract: batting.csv. Bronze front door.
+# ODCS v3.1-style. Rows are NOT validated here, only the file shape.
+apiVersion: v3.1.0
+kind: DataContract
+id: fbl.source.batting
+name: FBL batting file (as delivered)
+version: 1.0.0
+status: active
+domain: baseball_operations
+dataProduct: fbl
+description:
+  purpose: 'The batting.csv file the league office sends us. Promise: the listed columns are present and the file
+    is not empty.'
+  limitations: Values arrive as text and may be blank, duplicated, mis-cased or invalid. Row-level validity is NOT
+    promised here; silver enforces it.
+  usage: Load as strings into bronze. Never clean values before bronze.
+tags:
+- fbl
+- source
+customProperties:
+- property: layer
+  value: source
+- property: owner
+  value: Baseball Operations (file owner)
+- property: sourceSystem
+  value: league_office_csv
+slaProperties:
+- property: frequency
+  value: 1
+  unit: d
+  element: fbl_batting
+- property: timeOfAvailability
+  value: 06:00
+  unit: UTC
+  element: fbl_batting
+schema:
+- name: fbl_batting
+  physicalName: bronze.fbl_batting
+  logicalType: object
+  physicalType: table
+  description: Raw batting.csv, all columns as delivered.
+  customProperties:
+  - property: entity
+    value: batting
+  - property: landingFolder
+    value: batting
+  - property: fileName
+    value: batting.csv
+  quality:
+  - metric: rowCount
+    mustBeGreaterThan: 0
+    type: library
+    dimension: completeness
+    severity: error
+    description: The delivered file must contain at least one row.
+  properties:
+  - name: player_id
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Player. Part of the key. (raw text, present in the file header)
+  - name: season
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Season year. Part of the key. (raw text, present in the file header)
+  - name: team_id
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Team played for. Part of the key. (raw text, present in the file header)
+  - name: g
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Games played (0 to 162). (raw text, present in the file header)
+  - name: ab
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: At bats. (raw text, present in the file header)
+  - name: h
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Hits. Cannot exceed at bats. (raw text, present in the file header)
+  - name: doubles
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Doubles. (raw text, present in the file header)
+  - name: triples
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Triples. (raw text, present in the file header)
+  - name: hr
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Home runs. Cannot exceed hits. (raw text, present in the file header)
+  - name: rbi
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Runs batted in. (raw text, present in the file header)
+  - name: bb
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Walks. (raw text, present in the file header)
+  - name: so
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Strikeouts. (raw text, present in the file header)
+  - name: sb
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Stolen bases. Cannot be negative. (raw text, present in the file header)
