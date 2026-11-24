@@ -1,0 +1,53 @@
+# Databricks Asset Bundle: the single deployable unit for the whole project.
+bundle:
+  name: mlb_lakehouse
+
+variables:
+  catalog:
+    description: Unity Catalog catalog this target writes to.
+    default: mlb_dev
+  analyst_group:
+    description: Account-level group granted read on gold + semantic. Blank skips grants.
+    default: ""
+  apply_certification:
+    description: "true = tag gold/semantic assets as certified (needs ASSIGN on system.certification_status)."
+    default: "false"
+
+include:
+  - resources/*.yml
+
+# Authentication is NOT stored here. Locally: `databricks auth login --host <url>`.
+# In GitHub Actions: DATABRICKS_HOST / DATABRICKS_CLIENT_ID / DATABRICKS_CLIENT_SECRET env vars.
+targets:
+  dev:
+    # Personal sandbox. Resources are prefixed [dev <you>] and deploy under your user folder.
+    mode: development
+    default: true
+    variables:
+      catalog: mlb_dev
+
+  staging:
+    # Shared integration target. CI deploys + runs here on every pull request.
+    mode: production
+    variables:
+      catalog: mlb_stg
+    workspace:
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
+    permissions:
+      - group_name: users
+        level: CAN_VIEW
+
+  prod:
+    mode: production
+    variables:
+      catalog: mlb_prod
+      analyst_group: ""            # set to your real analyst group, e.g. data_analysts
+      apply_certification: "true"
+    workspace:
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
+    # Run prod as a service principal, never as a person:
+    # run_as:
+    #   service_principal_name: "<application-id-of-prod-sp>"
+    permissions:
+      - group_name: users
+        level: CAN_VIEW

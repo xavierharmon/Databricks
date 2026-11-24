@@ -38,27 +38,17 @@ def _make_importable(argv):
         if not c or not os.path.isdir(c):
             continue
         zipped = os.path.join(c, "lakehouse.zip")
-        if os.path.exists(zipped):                 # layout 1: the uploaded code zip (the Volume kit)
+        if os.path.exists(zipped):
             sys.path.insert(0, zipped)
             return zipped
-        if os.path.isdir(os.path.join(c, "lakehouse")):   # layout 2: a Git checkout of the project
+        if os.path.isdir(os.path.join(c, "lakehouse")):
             sys.path.insert(0, c)
-            if os.path.isdir(os.path.join(c, "src", "lib")):
-                sys.path.insert(0, os.path.join(c, "src"))     # the shared `lib` package lives under src/
             return c
     raise SystemExit("cannot find the pipeline code: pass --code-dir <folder containing lakehouse.zip> "
                      "(tried: " + ", ".join(c for c in candidates if c) + ")")
 
 
 if __name__ == "__main__":
-    try:                                   # lets --pipeline-root default to the folder this launcher sits in (a Git checkout)
-        os.environ.setdefault("LAKEHOUSE_LAUNCH_DIR", os.path.dirname(os.path.abspath(__file__)))
-    except NameError:
-        pass
     _make_importable(sys.argv[1:])
     from lakehouse.runner import main
-    # Exit only on failure. Databricks reports ANY SystemExit, even sys.exit(0), as a failed run, so a successful run
-    # must simply return. A non-zero exit still fails the task, which is the intended alert.
-    code = main()
-    if code:
-        sys.exit(code)
+    sys.exit(main())

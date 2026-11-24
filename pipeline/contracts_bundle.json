@@ -1,0 +1,4925 @@
+{
+ "bundleVersion": 1,
+ "contracts": [
+  {
+   "id": "fbl.gold.dim_player",
+   "checksum": "89d4531cd5cd06da",
+   "contract": {
+    "apiVersion": "v3.1.0",
+    "kind": "DataContract",
+    "id": "fbl.gold.dim_player",
+    "name": "FBL dim_player (gold)",
+    "version": "1.0.0",
+    "status": "active",
+    "domain": "baseball_operations",
+    "dataProduct": "fbl",
+    "description": {
+     "purpose": "Player dimension: one row per player.",
+     "limitations": "Gold never contains NULLs. Optional text is labeled 'None'. Numeric facts are never defaulted: bad rows are rejected in silver.",
+     "usage": "Safe for analysts and the semantic layer. Prefer the metric views for ratios."
+    },
+    "tags": [
+     "fbl",
+     "gold"
+    ],
+    "customProperties": [
+     {
+      "property": "layer",
+      "value": "gold"
+     },
+     {
+      "property": "owner",
+      "value": "Data Engineering"
+     },
+     {
+      "property": "dependsOn",
+      "value": "fbl.silver.player"
+     },
+     {
+      "property": "consumers",
+      "value": [
+       "fbl.semantic.mv_fbl_batting",
+       "fbl.semantic.mv_fbl_roster"
+      ]
+     }
+    ],
+    "slaProperties": [
+     {
+      "property": "freshness",
+      "value": 24,
+      "unit": "h",
+      "element": "dim_player"
+     },
+     {
+      "property": "frequency",
+      "value": 1,
+      "unit": "d",
+      "element": "dim_player"
+     }
+    ],
+    "schema": [
+     {
+      "name": "dim_player",
+      "physicalName": "gold.fbl_dim_player",
+      "logicalType": "object",
+      "physicalType": "table",
+      "description": "Player dimension: one row per player.",
+      "customProperties": [
+       {
+        "property": "entity",
+        "value": "dim_player"
+       },
+       {
+        "property": "reconcilesTo",
+        "value": "silver.fbl_player"
+       }
+      ],
+      "properties": [
+       {
+        "name": "player_id",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Player identifier, e.g. P001. Primary key.",
+        "primaryKey": true,
+        "primaryKeyPosition": 1
+       },
+       {
+        "name": "first_name",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Given name."
+       },
+       {
+        "name": "last_name",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Family name."
+       },
+       {
+        "name": "full_name",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "first_name + last_name"
+       },
+       {
+        "name": "birth_date",
+        "logicalType": "date",
+        "physicalType": "DATE",
+        "required": true,
+        "description": "Date of birth. Personal data. Player must be at least 16.",
+        "classification": "personal"
+       },
+       {
+        "name": "bats",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Batting side: L, R or B (switch)."
+       },
+       {
+        "name": "throws",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Throwing hand: L or R."
+       },
+       {
+        "name": "team_id",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Team the player belongs to.",
+        "relationships": [
+         {
+          "to": "dim_team.team_id",
+          "type": "foreignKey"
+         }
+        ]
+       },
+       {
+        "name": "position",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Position code: P, C, 1B, 2B, 3B, SS, LF, CF, RF or DH."
+       },
+       {
+        "name": "height_in",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Height in inches (60 to 84)."
+       },
+       {
+        "name": "weight_lb",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Weight in pounds (120 to 350 expected)."
+       },
+       {
+        "name": "nickname",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Gold guarantee: never NULL; the label 'None' means not provided."
+       }
+      ],
+      "quality": [
+       {
+        "metric": "rowCount",
+        "mustBeGreaterThan": 0,
+        "type": "library",
+        "dimension": "completeness",
+        "severity": "error",
+        "description": "Gold table must not be empty."
+       },
+       {
+        "name": "GLD-002",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "completeness",
+        "severity": "error",
+        "description": "Gold guarantee: no NULL in any dim_player column",
+        "implementation": {
+         "rule_type": "no_nulls",
+         "columns": "*",
+         "expression": "",
+         "action": "fail",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "GLD-005",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "uniqueness",
+        "severity": "error",
+        "description": "dim_player grain: one row per player_id",
+        "implementation": {
+         "rule_type": "unique",
+         "columns": [
+          "player_id"
+         ],
+         "expression": "",
+         "action": "fail",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "GLD-009",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "consistency",
+        "severity": "error",
+        "description": "Every player must belong to a team in dim_team",
+        "implementation": {
+         "rule_type": "referential",
+         "columns": [
+          "team_id"
+         ],
+         "expression": "gold.fbl_dim_team.team_id",
+         "action": "fail",
+         "owner": "Data Engineering"
+        }
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "fbl.gold.dim_team",
+   "checksum": "caa7b331508bb106",
+   "contract": {
+    "apiVersion": "v3.1.0",
+    "kind": "DataContract",
+    "id": "fbl.gold.dim_team",
+    "name": "FBL dim_team (gold)",
+    "version": "1.0.0",
+    "status": "active",
+    "domain": "baseball_operations",
+    "dataProduct": "fbl",
+    "description": {
+     "purpose": "Team dimension: one row per team.",
+     "limitations": "Gold never contains NULLs. Optional text is labeled 'None'. Numeric facts are never defaulted: bad rows are rejected in silver.",
+     "usage": "Safe for analysts and the semantic layer. Prefer the metric views for ratios."
+    },
+    "tags": [
+     "fbl",
+     "gold"
+    ],
+    "customProperties": [
+     {
+      "property": "layer",
+      "value": "gold"
+     },
+     {
+      "property": "owner",
+      "value": "Data Engineering"
+     },
+     {
+      "property": "dependsOn",
+      "value": "fbl.silver.team"
+     },
+     {
+      "property": "consumers",
+      "value": [
+       "fbl.semantic.mv_fbl_batting",
+       "fbl.semantic.mv_fbl_roster"
+      ]
+     }
+    ],
+    "slaProperties": [
+     {
+      "property": "freshness",
+      "value": 24,
+      "unit": "h",
+      "element": "dim_team"
+     },
+     {
+      "property": "frequency",
+      "value": 1,
+      "unit": "d",
+      "element": "dim_team"
+     }
+    ],
+    "schema": [
+     {
+      "name": "dim_team",
+      "physicalName": "gold.fbl_dim_team",
+      "logicalType": "object",
+      "physicalType": "table",
+      "description": "Team dimension: one row per team.",
+      "customProperties": [
+       {
+        "property": "entity",
+        "value": "dim_team"
+       },
+       {
+        "property": "reconcilesTo",
+        "value": "silver.fbl_team"
+       }
+      ],
+      "properties": [
+       {
+        "name": "team_id",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Team identifier, e.g. T01. Primary key.",
+        "primaryKey": true,
+        "primaryKeyPosition": 1
+       },
+       {
+        "name": "team_name",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Full team name."
+       },
+       {
+        "name": "city",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Home city."
+       },
+       {
+        "name": "league",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "League: North or South."
+       },
+       {
+        "name": "founded_year",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Year the franchise was founded (league started in 2000)."
+       },
+       {
+        "name": "home_park",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Home ballpark."
+       },
+       {
+        "name": "payroll_cap_musd",
+        "logicalType": "number",
+        "physicalType": "DOUBLE",
+        "required": true,
+        "description": "Payroll cap in millions of USD. Must be positive."
+       },
+       {
+        "name": "mascot",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Team mascot. Gold guarantee: never NULL; the label 'None' means not provided."
+       }
+      ],
+      "quality": [
+       {
+        "metric": "rowCount",
+        "mustBeGreaterThan": 0,
+        "type": "library",
+        "dimension": "completeness",
+        "severity": "error",
+        "description": "Gold table must not be empty."
+       },
+       {
+        "name": "GLD-001",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "completeness",
+        "severity": "error",
+        "description": "Gold guarantee: no NULL in any dim_team column",
+        "implementation": {
+         "rule_type": "no_nulls",
+         "columns": "*",
+         "expression": "",
+         "action": "fail",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "GLD-004",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "uniqueness",
+        "severity": "error",
+        "description": "dim_team grain: one row per team_id",
+        "implementation": {
+         "rule_type": "unique",
+         "columns": [
+          "team_id"
+         ],
+         "expression": "",
+         "action": "fail",
+         "owner": "Data Engineering"
+        }
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "fbl.gold.fact_batting",
+   "checksum": "6d515499b291e2d9",
+   "contract": {
+    "apiVersion": "v3.1.0",
+    "kind": "DataContract",
+    "id": "fbl.gold.fact_batting",
+    "name": "FBL fact_batting (gold)",
+    "version": "1.0.0",
+    "status": "active",
+    "domain": "baseball_operations",
+    "dataProduct": "fbl",
+    "description": {
+     "purpose": "Batting fact: one row per player, season and team. Additive components only; ratios live in the semantic layer.",
+     "limitations": "Gold never contains NULLs. Optional text is labeled 'None'. Numeric facts are never defaulted: bad rows are rejected in silver.",
+     "usage": "Safe for analysts and the semantic layer. Prefer the metric views for ratios."
+    },
+    "tags": [
+     "fbl",
+     "gold"
+    ],
+    "customProperties": [
+     {
+      "property": "layer",
+      "value": "gold"
+     },
+     {
+      "property": "owner",
+      "value": "Data Engineering"
+     },
+     {
+      "property": "dependsOn",
+      "value": "fbl.silver.batting"
+     },
+     {
+      "property": "consumers",
+      "value": [
+       "fbl.semantic.mv_fbl_batting",
+       "fbl.semantic.mv_fbl_roster"
+      ]
+     }
+    ],
+    "slaProperties": [
+     {
+      "property": "freshness",
+      "value": 24,
+      "unit": "h",
+      "element": "fact_batting"
+     },
+     {
+      "property": "frequency",
+      "value": 1,
+      "unit": "d",
+      "element": "fact_batting"
+     }
+    ],
+    "schema": [
+     {
+      "name": "fact_batting",
+      "physicalName": "gold.fbl_fact_batting",
+      "logicalType": "object",
+      "physicalType": "table",
+      "description": "Batting fact: one row per player, season and team. Additive components only; ratios live in the semantic layer.",
+      "customProperties": [
+       {
+        "property": "entity",
+        "value": "fact_batting"
+       },
+       {
+        "property": "reconcilesTo",
+        "value": "silver.fbl_batting"
+       }
+      ],
+      "properties": [
+       {
+        "name": "player_id",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Player. Part of the key.",
+        "primaryKey": true,
+        "primaryKeyPosition": 1,
+        "relationships": [
+         {
+          "to": "dim_player.player_id",
+          "type": "foreignKey"
+         }
+        ]
+       },
+       {
+        "name": "season",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Season year. Part of the key.",
+        "primaryKey": true,
+        "primaryKeyPosition": 2
+       },
+       {
+        "name": "team_id",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Team played for. Part of the key.",
+        "primaryKey": true,
+        "primaryKeyPosition": 3,
+        "relationships": [
+         {
+          "to": "dim_team.team_id",
+          "type": "foreignKey"
+         }
+        ]
+       },
+       {
+        "name": "g",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Games played (0 to 162)."
+       },
+       {
+        "name": "ab",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "At bats."
+       },
+       {
+        "name": "h",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Hits. Cannot exceed at bats."
+       },
+       {
+        "name": "doubles",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Doubles."
+       },
+       {
+        "name": "triples",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Triples."
+       },
+       {
+        "name": "hr",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Home runs. Cannot exceed hits."
+       },
+       {
+        "name": "rbi",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Runs batted in."
+       },
+       {
+        "name": "bb",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Walks."
+       },
+       {
+        "name": "so",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Strikeouts."
+       },
+       {
+        "name": "sb",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Stolen bases. Cannot be negative."
+       },
+       {
+        "name": "singles",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Derived: hits - doubles - triples - home runs."
+       },
+       {
+        "name": "total_bases",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Derived: 1B + 2*2B + 3*3B + 4*HR."
+       },
+       {
+        "name": "plate_appearances_approx",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Derived: at bats + walks (approximation)."
+       }
+      ],
+      "quality": [
+       {
+        "metric": "rowCount",
+        "mustBeGreaterThan": 0,
+        "type": "library",
+        "dimension": "completeness",
+        "severity": "error",
+        "description": "Gold table must not be empty."
+       },
+       {
+        "name": "GLD-003",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "completeness",
+        "severity": "error",
+        "description": "Gold guarantee: no NULL in any fact_batting column",
+        "implementation": {
+         "rule_type": "no_nulls",
+         "columns": "*",
+         "expression": "",
+         "action": "fail",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "GLD-006",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "uniqueness",
+        "severity": "error",
+        "description": "fact_batting grain: one row per player, season, team",
+        "implementation": {
+         "rule_type": "unique",
+         "columns": [
+          "player_id",
+          "season",
+          "team_id"
+         ],
+         "expression": "",
+         "action": "fail",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "GLD-007",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "consistency",
+        "severity": "error",
+        "description": "Every batting row must have a player in dim_player",
+        "implementation": {
+         "rule_type": "referential",
+         "columns": [
+          "player_id"
+         ],
+         "expression": "gold.fbl_dim_player.player_id",
+         "action": "fail",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "GLD-008",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "consistency",
+        "severity": "error",
+        "description": "Every batting row must have a team in dim_team",
+        "implementation": {
+         "rule_type": "referential",
+         "columns": [
+          "team_id"
+         ],
+         "expression": "gold.fbl_dim_team.team_id",
+         "action": "fail",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "GLD-010",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Business rules re-checked on gold: hits, home runs and at bats are consistent",
+        "implementation": {
+         "rule_type": "custom",
+         "columns": [
+          "h"
+         ],
+         "expression": "h <= ab AND hr <= h AND ab <= g * 6",
+         "action": "fail",
+         "owner": "Data Engineering"
+        }
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "fbl.semantic.mv_fbl_batting",
+   "checksum": "210d6611c9554670",
+   "contract": {
+    "apiVersion": "v3.1.0",
+    "kind": "DataContract",
+    "id": "fbl.semantic.mv_fbl_batting",
+    "name": "mv_fbl_batting (semantic)",
+    "version": "1.0.0",
+    "status": "active",
+    "domain": "baseball_operations",
+    "dataProduct": "fbl",
+    "description": {
+     "purpose": "Governed batting metrics for the Fictional Baseball League. Consumers group and filter by season, player, team, league, city, position or batting hand.",
+     "limitations": "OBP and OPS are approximations (no hit-by-pitch or sacrifice-fly data). Distinct counts (batters) cannot be summed across groups. Only rows that passed silver quality are included.",
+     "usage": "SELECT dim, MEASURE(measure) FROM semantic.mv_fbl_batting GROUP BY dim. Do not query the gold tables directly for ratios."
+    },
+    "tags": [
+     "fbl",
+     "semantic"
+    ],
+    "customProperties": [
+     {
+      "property": "layer",
+      "value": "semantic"
+     },
+     {
+      "property": "owner",
+      "value": "Analytics Engineering"
+     },
+     {
+      "property": "strictTypes",
+      "value": false
+     }
+    ],
+    "slaProperties": [
+     {
+      "property": "freshness",
+      "value": 24,
+      "unit": "h",
+      "element": "mv_fbl_batting"
+     },
+     {
+      "property": "frequency",
+      "value": 1,
+      "unit": "d",
+      "element": "mv_fbl_batting"
+     }
+    ],
+    "schema": [
+     {
+      "name": "mv_fbl_batting",
+      "physicalName": "semantic.mv_fbl_batting",
+      "logicalType": "object",
+      "physicalType": "view",
+      "description": "Governed batting metrics for the Fictional Baseball League. Consumers group and filter by season, player, team, league, city, position or batting hand.",
+      "customProperties": [
+       {
+        "property": "definition",
+        "value": "sql/fbl/metric_views/mv_fbl_batting.sql"
+       },
+       {
+        "property": "dependsOn",
+        "value": [
+         "gold.fbl_fact_batting",
+         "gold.fbl_dim_player",
+         "gold.fbl_dim_team"
+        ]
+       },
+       {
+        "property": "consumers",
+        "value": [
+         "bi_dashboards",
+         "genie_space_fbl"
+        ]
+       }
+      ],
+      "properties": [
+       {
+        "name": "season",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Season year.",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "18c81f0acf57"
+         }
+        ]
+       },
+       {
+        "name": "player_name",
+        "logicalType": "string",
+        "required": false,
+        "description": "Player full name.",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "d28d7eea452f"
+         }
+        ]
+       },
+       {
+        "name": "batting_hand",
+        "logicalType": "string",
+        "required": false,
+        "description": "Bats",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "f755b3fc8eba"
+         }
+        ]
+       },
+       {
+        "name": "position",
+        "logicalType": "string",
+        "required": false,
+        "description": "Position",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "1a3e9d68531f"
+         }
+        ]
+       },
+       {
+        "name": "team_name",
+        "logicalType": "string",
+        "required": false,
+        "description": "Team name.",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "a6a8b4c76709"
+         }
+        ]
+       },
+       {
+        "name": "league",
+        "logicalType": "string",
+        "required": false,
+        "description": "League (North or South).",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "58a3bb6e9d5f"
+         }
+        ]
+       },
+       {
+        "name": "city",
+        "logicalType": "string",
+        "required": false,
+        "description": "City",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "7f824915493f"
+         }
+        ]
+       },
+       {
+        "name": "games",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Games",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "2c693824fe80"
+         }
+        ]
+       },
+       {
+        "name": "at_bats",
+        "logicalType": "integer",
+        "required": false,
+        "description": "At Bats",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "049e5740b70b"
+         }
+        ]
+       },
+       {
+        "name": "hits",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Hits",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "c37ec28232c8"
+         }
+        ]
+       },
+       {
+        "name": "doubles",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Doubles",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "ff5094558c95"
+         }
+        ]
+       },
+       {
+        "name": "triples",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Triples",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "f713219e2a51"
+         }
+        ]
+       },
+       {
+        "name": "home_runs",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Home Runs",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "5c00cce45643"
+         }
+        ]
+       },
+       {
+        "name": "rbi",
+        "logicalType": "integer",
+        "required": false,
+        "description": "RBI",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "7931f243ed37"
+         }
+        ]
+       },
+       {
+        "name": "walks",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Walks",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "49499ba878d5"
+         }
+        ]
+       },
+       {
+        "name": "strikeouts",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Strikeouts",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "b8058a5fd825"
+         }
+        ]
+       },
+       {
+        "name": "stolen_bases",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Stolen Bases",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "d86519884e33"
+         }
+        ]
+       },
+       {
+        "name": "batting_avg",
+        "logicalType": "number",
+        "required": false,
+        "description": "Summed hits / summed at bats. Never average player averages.",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "d6c4f4e83168"
+         }
+        ]
+       },
+       {
+        "name": "on_base_pct_approx",
+        "logicalType": "number",
+        "required": false,
+        "description": "On-Base Percentage (approx)",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "bad3b89f4bc8"
+         }
+        ]
+       },
+       {
+        "name": "slugging_pct",
+        "logicalType": "number",
+        "required": false,
+        "description": "Slugging Percentage",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "e895bedadcdb"
+         }
+        ]
+       },
+       {
+        "name": "ops_approx",
+        "logicalType": "number",
+        "required": false,
+        "description": "OPS (approx)",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "d09e5a2b8d9e"
+         }
+        ]
+       },
+       {
+        "name": "home_run_rate",
+        "logicalType": "number",
+        "required": false,
+        "description": "Home Run Rate (per at bat)",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "aa8e24520508"
+         }
+        ]
+       },
+       {
+        "name": "batters",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Distinct players. Non-additive.",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "f9aadfad8d87"
+         }
+        ]
+       }
+      ],
+      "quality": [
+       {
+        "name": "SEM-FBLB-001",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Home runs by team in the metric view equal the sum from the gold fact.",
+        "implementation": {
+         "test_type": "reconcile",
+         "dimensions": [
+          "team_name"
+         ],
+         "measures": [
+          "home_runs"
+         ],
+         "tolerance": 0,
+         "compare_sql": "SELECT t.team_name, SUM(f.hr) AS home_runs FROM gold.fbl_fact_batting f JOIN gold.fbl_dim_team t ON f.team_id = t.team_id GROUP BY t.team_name"
+        }
+       },
+       {
+        "name": "SEM-FBLB-002",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Batting average by league equals summed hits over summed at bats from the gold fact (no average of averages).",
+        "implementation": {
+         "test_type": "reconcile",
+         "dimensions": [
+          "league"
+         ],
+         "measures": [
+          "batting_avg"
+         ],
+         "tolerance": 1e-09,
+         "compare_sql": "SELECT t.league, SUM(f.h) / NULLIF(SUM(f.ab), 0) AS batting_avg FROM gold.fbl_fact_batting f JOIN gold.fbl_dim_team t ON f.team_id = t.team_id GROUP BY t.league"
+        }
+       },
+       {
+        "name": "SEM-FBLB-003",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Distinct batters per team equals the distinct players in the fact (distinct counts are not additive).",
+        "implementation": {
+         "test_type": "reconcile",
+         "dimensions": [
+          "team_name"
+         ],
+         "measures": [
+          "batters"
+         ],
+         "tolerance": 0,
+         "compare_sql": "SELECT t.team_name, COUNT(DISTINCT f.player_id) AS batters FROM gold.fbl_fact_batting f JOIN gold.fbl_dim_team t ON f.team_id = t.team_id GROUP BY t.team_name"
+        }
+       },
+       {
+        "name": "SEM-FBLB-004",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "League-wide totals match the fact table.",
+        "implementation": {
+         "test_type": "reconcile",
+         "dimensions": [],
+         "measures": [
+          "home_runs",
+          "hits",
+          "at_bats"
+         ],
+         "tolerance": 0,
+         "compare_sql": "SELECT SUM(hr) AS home_runs, SUM(h) AS hits, SUM(ab) AS at_bats FROM gold.fbl_fact_batting"
+        }
+       },
+       {
+        "name": "SEM-FBLB-005",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Rates stay between 0 and 1 for every team and season.",
+        "implementation": {
+         "test_type": "bounds",
+         "dimensions": [
+          "team_name",
+          "season"
+         ],
+         "bounds": {
+          "batting_avg": [
+           0,
+           1
+          ],
+          "on_base_pct_approx": [
+           0,
+           1
+          ],
+          "slugging_pct": [
+           0,
+           4
+          ],
+          "home_run_rate": [
+           0,
+           1
+          ]
+         }
+        }
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "fbl.semantic.mv_fbl_roster",
+   "checksum": "4cdae25404429478",
+   "contract": {
+    "apiVersion": "v3.1.0",
+    "kind": "DataContract",
+    "id": "fbl.semantic.mv_fbl_roster",
+    "name": "mv_fbl_roster (semantic)",
+    "version": "1.0.0",
+    "status": "active",
+    "domain": "baseball_operations",
+    "dataProduct": "fbl",
+    "description": {
+     "purpose": "Governed roster metrics for the Fictional Baseball League: headcount, average height and weight, switch hitters, by team, league, position and handedness.",
+     "limitations": "Roster only: one row per player in the dimension. Contains no performance statistics. Personal data (birth date) is not exposed here.",
+     "usage": "SELECT dim, MEASURE(measure) FROM semantic.mv_fbl_roster GROUP BY dim."
+    },
+    "tags": [
+     "fbl",
+     "semantic"
+    ],
+    "customProperties": [
+     {
+      "property": "layer",
+      "value": "semantic"
+     },
+     {
+      "property": "owner",
+      "value": "Analytics Engineering"
+     },
+     {
+      "property": "strictTypes",
+      "value": false
+     }
+    ],
+    "slaProperties": [
+     {
+      "property": "freshness",
+      "value": 24,
+      "unit": "h",
+      "element": "mv_fbl_roster"
+     },
+     {
+      "property": "frequency",
+      "value": 1,
+      "unit": "d",
+      "element": "mv_fbl_roster"
+     }
+    ],
+    "schema": [
+     {
+      "name": "mv_fbl_roster",
+      "physicalName": "semantic.mv_fbl_roster",
+      "logicalType": "object",
+      "physicalType": "view",
+      "description": "Governed roster metrics for the Fictional Baseball League: headcount, average height and weight, switch hitters, by team, league, position and handedness.",
+      "customProperties": [
+       {
+        "property": "definition",
+        "value": "sql/fbl/metric_views/mv_fbl_roster.sql"
+       },
+       {
+        "property": "dependsOn",
+        "value": [
+         "gold.fbl_dim_player",
+         "gold.fbl_dim_team"
+        ]
+       },
+       {
+        "property": "consumers",
+        "value": [
+         "bi_dashboards"
+        ]
+       }
+      ],
+      "properties": [
+       {
+        "name": "team_name",
+        "logicalType": "string",
+        "required": false,
+        "description": "Team name.",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "a6a8b4c76709"
+         }
+        ]
+       },
+       {
+        "name": "league",
+        "logicalType": "string",
+        "required": false,
+        "description": "League (North or South).",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "58a3bb6e9d5f"
+         }
+        ]
+       },
+       {
+        "name": "position",
+        "logicalType": "string",
+        "required": false,
+        "description": "Position",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "ff6877ec3c1f"
+         }
+        ]
+       },
+       {
+        "name": "batting_hand",
+        "logicalType": "string",
+        "required": false,
+        "description": "Bats",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "133a7855692e"
+         }
+        ]
+       },
+       {
+        "name": "throwing_hand",
+        "logicalType": "string",
+        "required": false,
+        "description": "Throws",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "c6e57813abc5"
+         }
+        ]
+       },
+       {
+        "name": "players",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Number of players. Count of rows in the player dimension.",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "5c14c3cbd2d3"
+         }
+        ]
+       },
+       {
+        "name": "avg_height_in",
+        "logicalType": "number",
+        "required": false,
+        "description": "Average Height (in)",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "bb63b5fb2561"
+         }
+        ]
+       },
+       {
+        "name": "avg_weight_lb",
+        "logicalType": "number",
+        "required": false,
+        "description": "Average Weight (lb)",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "7235c822efd3"
+         }
+        ]
+       },
+       {
+        "name": "switch_hitters",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Switch Hitters",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "465e950936e5"
+         }
+        ]
+       },
+       {
+        "name": "teams",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Distinct Teams",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "260af457735d"
+         }
+        ]
+       }
+      ],
+      "quality": [
+       {
+        "name": "SEM-FBLR-001",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Players per team equals the player dimension counts.",
+        "implementation": {
+         "test_type": "reconcile",
+         "dimensions": [
+          "team_name"
+         ],
+         "measures": [
+          "players"
+         ],
+         "tolerance": 0,
+         "compare_sql": "SELECT t.team_name, COUNT(*) AS players FROM gold.fbl_dim_player p JOIN gold.fbl_dim_team t ON p.team_id = t.team_id GROUP BY t.team_name"
+        }
+       },
+       {
+        "name": "SEM-FBLR-002",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Average height is plausible for every team and position.",
+        "implementation": {
+         "test_type": "bounds",
+         "dimensions": [
+          "team_name",
+          "position"
+         ],
+         "bounds": {
+          "avg_height_in": [
+           60,
+           84
+          ]
+         }
+        }
+       },
+       {
+        "name": "SEM-FBLR-004",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "warning",
+        "description": "Average weight is plausible. WARNING level: silver only warns about odd weights (PLR-008), so this test surfaces any that reached gold.",
+        "implementation": {
+         "test_type": "bounds",
+         "dimensions": [
+          "team_name",
+          "position"
+         ],
+         "bounds": {
+          "avg_weight_lb": [
+           120,
+           350
+          ]
+         }
+        }
+       },
+       {
+        "name": "SEM-FBLR-003",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Total players equals the player dimension row count.",
+        "implementation": {
+         "test_type": "reconcile",
+         "dimensions": [],
+         "measures": [
+          "players"
+         ],
+         "tolerance": 0,
+         "compare_sql": "SELECT COUNT(*) AS players FROM gold.fbl_dim_player"
+        }
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "lahman.semantic.mv_batting",
+   "checksum": "a00fcf13e915498b",
+   "contract": {
+    "apiVersion": "v3.1.0",
+    "kind": "DataContract",
+    "id": "lahman.semantic.mv_batting",
+    "name": "mv_batting (semantic)",
+    "version": "1.0.0",
+    "status": "active",
+    "domain": "baseball_operations",
+    "dataProduct": "lahman",
+    "description": {
+     "purpose": "Governed batting metrics for MLB 1871-2020 (Lahman). Ratios are computed from summed components.",
+     "limitations": "NULL means not recorded (e.g. no sacrifice flies before 1954), not zero. Distinct counts are not additive.",
+     "usage": "SELECT dim, MEASURE(measure) FROM semantic.mv_batting GROUP BY dim."
+    },
+    "tags": [
+     "lahman",
+     "semantic"
+    ],
+    "customProperties": [
+     {
+      "property": "layer",
+      "value": "semantic"
+     },
+     {
+      "property": "owner",
+      "value": "Analytics Engineering"
+     },
+     {
+      "property": "strictTypes",
+      "value": false
+     }
+    ],
+    "slaProperties": [
+     {
+      "property": "frequency",
+      "value": 1,
+      "unit": "d",
+      "element": "mv_batting"
+     }
+    ],
+    "schema": [
+     {
+      "name": "mv_batting",
+      "physicalName": "semantic.mv_batting",
+      "logicalType": "object",
+      "physicalType": "view",
+      "description": "Governed batting metrics for MLB 1871-2020 (Lahman). Ratios are computed from summed components.",
+      "customProperties": [
+       {
+        "property": "definition",
+        "value": "sql/metric_views/10_mv_batting.sql"
+       },
+       {
+        "property": "dependsOn",
+        "value": [
+         "gold.fact_batting_season",
+         "gold.dim_player",
+         "gold.dim_team_season",
+         "gold.dim_season"
+        ]
+       },
+       {
+        "property": "consumers",
+        "value": [
+         "bi_dashboards",
+         "genie_space_mlb"
+        ]
+       }
+      ],
+      "properties": [
+       {
+        "name": "season",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Season",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "18c81f0acf57"
+         }
+        ]
+       },
+       {
+        "name": "decade",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Decade",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "4854e3a4b48a"
+         }
+        ]
+       },
+       {
+        "name": "baseball_era",
+        "logicalType": "string",
+        "required": false,
+        "description": "Baseball Era",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "87a969fc3eef"
+         }
+        ]
+       },
+       {
+        "name": "player_name",
+        "logicalType": "string",
+        "required": false,
+        "description": "Player",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "d28d7eea452f"
+         }
+        ]
+       },
+       {
+        "name": "batting_hand",
+        "logicalType": "string",
+        "required": false,
+        "description": "Bats",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "42a681b4211a"
+         }
+        ]
+       },
+       {
+        "name": "birth_country",
+        "logicalType": "string",
+        "required": false,
+        "description": "Birth Country",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "9b4ceee9c61a"
+         }
+        ]
+       },
+       {
+        "name": "team_name",
+        "logicalType": "string",
+        "required": false,
+        "description": "Team",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "a6a8b4c76709"
+         }
+        ]
+       },
+       {
+        "name": "franchise",
+        "logicalType": "string",
+        "required": false,
+        "description": "Franchise",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "a0408473bec7"
+         }
+        ]
+       },
+       {
+        "name": "league",
+        "logicalType": "string",
+        "required": false,
+        "description": "League",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "5a8a79f3c146"
+         }
+        ]
+       },
+       {
+        "name": "division",
+        "logicalType": "string",
+        "required": false,
+        "description": "Division",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "9d1afb56297f"
+         }
+        ]
+       },
+       {
+        "name": "games",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Games",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "2c693824fe80"
+         }
+        ]
+       },
+       {
+        "name": "at_bats",
+        "logicalType": "integer",
+        "required": false,
+        "description": "At Bats",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "049e5740b70b"
+         }
+        ]
+       },
+       {
+        "name": "plate_appearances",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Plate Appearances",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "254ccffd6043"
+         }
+        ]
+       },
+       {
+        "name": "runs",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Runs",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "b88fa486fc3e"
+         }
+        ]
+       },
+       {
+        "name": "hits",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Hits",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "c37ec28232c8"
+         }
+        ]
+       },
+       {
+        "name": "home_runs",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Home Runs",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "5c00cce45643"
+         }
+        ]
+       },
+       {
+        "name": "rbi",
+        "logicalType": "integer",
+        "required": false,
+        "description": "RBI",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "7931f243ed37"
+         }
+        ]
+       },
+       {
+        "name": "stolen_bases",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Stolen Bases",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "d86519884e33"
+         }
+        ]
+       },
+       {
+        "name": "walks",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Walks",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "49499ba878d5"
+         }
+        ]
+       },
+       {
+        "name": "strikeouts",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Strikeouts",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "b8058a5fd825"
+         }
+        ]
+       },
+       {
+        "name": "batting_avg",
+        "logicalType": "number",
+        "required": false,
+        "description": "Hits divided by at bats. Never average player averages: always divide summed hits by summed at bats.",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "d6c4f4e83168"
+         }
+        ]
+       },
+       {
+        "name": "on_base_pct",
+        "logicalType": "number",
+        "required": false,
+        "description": "On-Base Percentage",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "04ebab5c3420"
+         }
+        ]
+       },
+       {
+        "name": "slugging_pct",
+        "logicalType": "number",
+        "required": false,
+        "description": "Slugging Percentage",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "e895bedadcdb"
+         }
+        ]
+       },
+       {
+        "name": "ops",
+        "logicalType": "number",
+        "required": false,
+        "description": "Composed measure: built from two earlier measures with MEASURE(). Change OBP once, OPS follows.",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "05d5ae136aba"
+         }
+        ]
+       },
+       {
+        "name": "isolated_power",
+        "logicalType": "number",
+        "required": false,
+        "description": "Isolated Power",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "29c731829bbf"
+         }
+        ]
+       },
+       {
+        "name": "home_run_rate",
+        "logicalType": "number",
+        "required": false,
+        "description": "Home Run Rate",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "578ea68db733"
+         }
+        ]
+       },
+       {
+        "name": "strikeout_rate",
+        "logicalType": "number",
+        "required": false,
+        "description": "Strikeout Rate",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "c829739abd75"
+         }
+        ]
+       },
+       {
+        "name": "walk_rate",
+        "logicalType": "number",
+        "required": false,
+        "description": "Walk Rate",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "8706e47a2197"
+         }
+        ]
+       },
+       {
+        "name": "stolen_base_success_rate",
+        "logicalType": "number",
+        "required": false,
+        "description": "Stolen Base Success Rate",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "4244c4e7ed04"
+         }
+        ]
+       },
+       {
+        "name": "batters",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Non-additive: distinct counts cannot be summed across groups. The metric view handles that for you.",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "7a9129d1f32e"
+         }
+        ]
+       },
+       {
+        "name": "home_runs_regular_stints",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Filtered measure example: only rows with at least 400 at bats.",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "bcaf74032868"
+         }
+        ]
+       },
+       {
+        "name": "cumulative_home_runs",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Window measure: running total ordered by season. Group by season to see the curve.",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "5c00cce45643"
+         }
+        ]
+       }
+      ],
+      "quality": [
+       {
+        "name": "SEM-LB-001",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Bonds 2001 returns the record-book home runs and batting average.",
+        "implementation": {
+         "test_type": "expect",
+         "dimensions": [
+          "player_name",
+          "season"
+         ],
+         "measures": [
+          "home_runs",
+          "batting_avg"
+         ],
+         "where": "player_name = 'Barry Bonds' AND season = 2001",
+         "expect": [
+          {
+           "player_name": "Barry Bonds",
+           "season": 2001,
+           "home_runs": 73,
+           "batting_avg": 0.3277
+          }
+         ],
+         "tolerance": 0.0005
+        }
+       },
+       {
+        "name": "SEM-LB-002",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Home runs by season equal the sum from the gold fact.",
+        "implementation": {
+         "test_type": "reconcile",
+         "dimensions": [
+          "season"
+         ],
+         "measures": [
+          "home_runs"
+         ],
+         "tolerance": 0,
+         "compare_sql": "SELECT season, SUM(hr) AS home_runs FROM gold.fact_batting_season GROUP BY season"
+        }
+       },
+       {
+        "name": "SEM-LB-003",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "2001 league-wide home runs match the raw Lahman file.",
+        "implementation": {
+         "test_type": "expect",
+         "dimensions": [
+          "season"
+         ],
+         "measures": [
+          "home_runs"
+         ],
+         "where": "season = 2001",
+         "expect": [
+          {
+           "season": 2001,
+           "home_runs": 5458
+          }
+         ],
+         "tolerance": 0
+        }
+       },
+       {
+        "name": "SEM-LB-004",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Batting average is between 0 and 1 for every season and league.",
+        "implementation": {
+         "test_type": "bounds",
+         "dimensions": [
+          "season",
+          "league"
+         ],
+         "bounds": {
+          "batting_avg": [
+           0,
+           1
+          ]
+         }
+        }
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "lahman.semantic.mv_pitching",
+   "checksum": "bc735ce2b8a20ec7",
+   "contract": {
+    "apiVersion": "v3.1.0",
+    "kind": "DataContract",
+    "id": "lahman.semantic.mv_pitching",
+    "name": "mv_pitching (semantic)",
+    "version": "1.0.0",
+    "status": "active",
+    "domain": "baseball_operations",
+    "dataProduct": "lahman",
+    "description": {
+     "purpose": "Governed pitching metrics for MLB 1871-2020 (Lahman). Rates use outs (ipouts / 3), not decimal innings.",
+     "limitations": "Older seasons have missing strikeout and walk detail. Distinct counts are not additive.",
+     "usage": "SELECT dim, MEASURE(measure) FROM semantic.mv_pitching GROUP BY dim."
+    },
+    "tags": [
+     "lahman",
+     "semantic"
+    ],
+    "customProperties": [
+     {
+      "property": "layer",
+      "value": "semantic"
+     },
+     {
+      "property": "owner",
+      "value": "Analytics Engineering"
+     },
+     {
+      "property": "strictTypes",
+      "value": false
+     }
+    ],
+    "slaProperties": [
+     {
+      "property": "frequency",
+      "value": 1,
+      "unit": "d",
+      "element": "mv_pitching"
+     }
+    ],
+    "schema": [
+     {
+      "name": "mv_pitching",
+      "physicalName": "semantic.mv_pitching",
+      "logicalType": "object",
+      "physicalType": "view",
+      "description": "Governed pitching metrics for MLB 1871-2020 (Lahman). Rates use outs (ipouts / 3), not decimal innings.",
+      "customProperties": [
+       {
+        "property": "definition",
+        "value": "sql/metric_views/20_mv_pitching.sql"
+       },
+       {
+        "property": "dependsOn",
+        "value": [
+         "gold.fact_pitching_season",
+         "gold.dim_player",
+         "gold.dim_team_season",
+         "gold.dim_season"
+        ]
+       },
+       {
+        "property": "consumers",
+        "value": [
+         "bi_dashboards",
+         "genie_space_mlb"
+        ]
+       }
+      ],
+      "properties": [
+       {
+        "name": "season",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Season",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "18c81f0acf57"
+         }
+        ]
+       },
+       {
+        "name": "decade",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Decade",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "4854e3a4b48a"
+         }
+        ]
+       },
+       {
+        "name": "baseball_era",
+        "logicalType": "string",
+        "required": false,
+        "description": "Baseball Era",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "87a969fc3eef"
+         }
+        ]
+       },
+       {
+        "name": "player_name",
+        "logicalType": "string",
+        "required": false,
+        "description": "Pitcher",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "d28d7eea452f"
+         }
+        ]
+       },
+       {
+        "name": "throws",
+        "logicalType": "string",
+        "required": false,
+        "description": "Throws",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "b8d3e296ee47"
+         }
+        ]
+       },
+       {
+        "name": "team_name",
+        "logicalType": "string",
+        "required": false,
+        "description": "Team",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "a6a8b4c76709"
+         }
+        ]
+       },
+       {
+        "name": "franchise",
+        "logicalType": "string",
+        "required": false,
+        "description": "Franchise",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "a0408473bec7"
+         }
+        ]
+       },
+       {
+        "name": "league",
+        "logicalType": "string",
+        "required": false,
+        "description": "League",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "5a8a79f3c146"
+         }
+        ]
+       },
+       {
+        "name": "games",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Games",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "2c693824fe80"
+         }
+        ]
+       },
+       {
+        "name": "games_started",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Games Started",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "4bdc328b400f"
+         }
+        ]
+       },
+       {
+        "name": "wins",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Wins",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "30339175bb51"
+         }
+        ]
+       },
+       {
+        "name": "losses",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Losses",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "f6c15137548e"
+         }
+        ]
+       },
+       {
+        "name": "saves",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Saves",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "2635cd36f639"
+         }
+        ]
+       },
+       {
+        "name": "complete_games",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Complete Games",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "ddae53bfcba2"
+         }
+        ]
+       },
+       {
+        "name": "shutouts",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Shutouts",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "a9d84c979c60"
+         }
+        ]
+       },
+       {
+        "name": "strikeouts",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Strikeouts",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "b8058a5fd825"
+         }
+        ]
+       },
+       {
+        "name": "walks",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Walks",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "49499ba878d5"
+         }
+        ]
+       },
+       {
+        "name": "hits_allowed",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Hits Allowed",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "c37ec28232c8"
+         }
+        ]
+       },
+       {
+        "name": "home_runs_allowed",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Home Runs Allowed",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "5c00cce45643"
+         }
+        ]
+       },
+       {
+        "name": "earned_runs",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Earned Runs",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "891824f189c3"
+         }
+        ]
+       },
+       {
+        "name": "innings_pitched",
+        "logicalType": "number",
+        "required": false,
+        "description": "Innings Pitched",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "c18373fbce26"
+         }
+        ]
+       },
+       {
+        "name": "era",
+        "logicalType": "number",
+        "required": false,
+        "description": "Earned runs per nine innings = 27 x ER / outs recorded.",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "c624911c4ccc"
+         }
+        ]
+       },
+       {
+        "name": "whip",
+        "logicalType": "number",
+        "required": false,
+        "description": "WHIP",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "9dd00f25c5ad"
+         }
+        ]
+       },
+       {
+        "name": "strikeouts_per_9",
+        "logicalType": "number",
+        "required": false,
+        "description": "Strikeouts per 9",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "0f579d443eeb"
+         }
+        ]
+       },
+       {
+        "name": "walks_per_9",
+        "logicalType": "number",
+        "required": false,
+        "description": "Walks per 9",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "24d7ddbabf3d"
+         }
+        ]
+       },
+       {
+        "name": "home_runs_per_9",
+        "logicalType": "number",
+        "required": false,
+        "description": "Home Runs per 9",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "d4219e3b6d12"
+         }
+        ]
+       },
+       {
+        "name": "strikeout_to_walk_ratio",
+        "logicalType": "number",
+        "required": false,
+        "description": "Strikeout-to-Walk Ratio",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "263d76edffff"
+         }
+        ]
+       },
+       {
+        "name": "win_pct",
+        "logicalType": "number",
+        "required": false,
+        "description": "Win Percentage",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "5178c874383e"
+         }
+        ]
+       },
+       {
+        "name": "pitchers",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Distinct Pitchers",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "7a9129d1f32e"
+         }
+        ]
+       }
+      ],
+      "quality": [
+       {
+        "name": "SEM-LP-001",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "2001 league-wide strikeouts match the raw Lahman file.",
+        "implementation": {
+         "test_type": "expect",
+         "dimensions": [
+          "season"
+         ],
+         "measures": [
+          "strikeouts"
+         ],
+         "where": "season = 2001",
+         "expect": [
+          {
+           "season": 2001,
+           "strikeouts": 32404
+          }
+         ],
+         "tolerance": 0
+        }
+       },
+       {
+        "name": "SEM-LP-002",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Strikeouts by season equal the sum from the gold fact.",
+        "implementation": {
+         "test_type": "reconcile",
+         "dimensions": [
+          "season"
+         ],
+         "measures": [
+          "strikeouts"
+         ],
+         "tolerance": 0,
+         "compare_sql": "SELECT season, SUM(so) AS strikeouts FROM gold.fact_pitching_season GROUP BY season"
+        }
+       },
+       {
+        "name": "SEM-LP-003",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Win percentage is between 0 and 1 for every season.",
+        "implementation": {
+         "test_type": "bounds",
+         "dimensions": [
+          "season"
+         ],
+         "bounds": {
+          "win_pct": [
+           0,
+           1
+          ]
+         }
+        }
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "lahman.semantic.mv_team_season",
+   "checksum": "6594067b5ed280d8",
+   "contract": {
+    "apiVersion": "v3.1.0",
+    "kind": "DataContract",
+    "id": "lahman.semantic.mv_team_season",
+    "name": "mv_team_season (semantic)",
+    "version": "1.0.0",
+    "status": "active",
+    "domain": "baseball_operations",
+    "dataProduct": "lahman",
+    "description": {
+     "purpose": "Governed team-season metrics (results, run environment, attendance, payroll) for MLB 1871-2020 (Lahman).",
+     "limitations": "Payroll exists from 1985 only and is NULL before. Cost per win only counts seasons with payroll.",
+     "usage": "SELECT dim, MEASURE(measure) FROM semantic.mv_team_season GROUP BY dim."
+    },
+    "tags": [
+     "lahman",
+     "semantic"
+    ],
+    "customProperties": [
+     {
+      "property": "layer",
+      "value": "semantic"
+     },
+     {
+      "property": "owner",
+      "value": "Analytics Engineering"
+     },
+     {
+      "property": "strictTypes",
+      "value": false
+     }
+    ],
+    "slaProperties": [
+     {
+      "property": "frequency",
+      "value": 1,
+      "unit": "d",
+      "element": "mv_team_season"
+     }
+    ],
+    "schema": [
+     {
+      "name": "mv_team_season",
+      "physicalName": "semantic.mv_team_season",
+      "logicalType": "object",
+      "physicalType": "view",
+      "description": "Governed team-season metrics (results, run environment, attendance, payroll) for MLB 1871-2020 (Lahman).",
+      "customProperties": [
+       {
+        "property": "definition",
+        "value": "sql/metric_views/30_mv_team_season.sql"
+       },
+       {
+        "property": "dependsOn",
+        "value": [
+         "gold.fact_team_season",
+         "gold.dim_team_season",
+         "gold.dim_season"
+        ]
+       },
+       {
+        "property": "consumers",
+        "value": [
+         "bi_dashboards",
+         "genie_space_mlb"
+        ]
+       }
+      ],
+      "properties": [
+       {
+        "name": "season",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Season",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "18c81f0acf57"
+         }
+        ]
+       },
+       {
+        "name": "decade",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Decade",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "4854e3a4b48a"
+         }
+        ]
+       },
+       {
+        "name": "baseball_era",
+        "logicalType": "string",
+        "required": false,
+        "description": "Baseball Era",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "87a969fc3eef"
+         }
+        ]
+       },
+       {
+        "name": "team_name",
+        "logicalType": "string",
+        "required": false,
+        "description": "Team",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "a6a8b4c76709"
+         }
+        ]
+       },
+       {
+        "name": "franchise",
+        "logicalType": "string",
+        "required": false,
+        "description": "Franchise",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "a0408473bec7"
+         }
+        ]
+       },
+       {
+        "name": "league",
+        "logicalType": "string",
+        "required": false,
+        "description": "League",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "5a8a79f3c146"
+         }
+        ]
+       },
+       {
+        "name": "division",
+        "logicalType": "string",
+        "required": false,
+        "description": "Division",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "9d1afb56297f"
+         }
+        ]
+       },
+       {
+        "name": "ballpark",
+        "logicalType": "string",
+        "required": false,
+        "description": "Ballpark",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "99484b3203d3"
+         }
+        ]
+       },
+       {
+        "name": "won_world_series",
+        "logicalType": "boolean",
+        "required": false,
+        "description": "Won World Series",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "field"
+         },
+         {
+          "property": "exprHash",
+          "value": "05c67ee92ab2"
+         }
+        ]
+       },
+       {
+        "name": "team_seasons",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Team Seasons",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "5c14c3cbd2d3"
+         }
+        ]
+       },
+       {
+        "name": "games",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Games",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "2c693824fe80"
+         }
+        ]
+       },
+       {
+        "name": "wins",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Wins",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "30339175bb51"
+         }
+        ]
+       },
+       {
+        "name": "losses",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Losses",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "f6c15137548e"
+         }
+        ]
+       },
+       {
+        "name": "win_pct",
+        "logicalType": "number",
+        "required": false,
+        "description": "Win Percentage",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "5178c874383e"
+         }
+        ]
+       },
+       {
+        "name": "runs_scored",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Runs Scored",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "b88fa486fc3e"
+         }
+        ]
+       },
+       {
+        "name": "runs_allowed",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Runs Allowed",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "f9a948a63f02"
+         }
+        ]
+       },
+       {
+        "name": "run_differential",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Run Differential",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "7266756bf1a3"
+         }
+        ]
+       },
+       {
+        "name": "pythagorean_win_pct",
+        "logicalType": "number",
+        "required": false,
+        "description": "Expected win percentage from runs scored and allowed (exponent 1.83).",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "6b36fa6c9491"
+         }
+        ]
+       },
+       {
+        "name": "wins_over_expected",
+        "logicalType": "number",
+        "required": false,
+        "description": "Win Pct Over Expected",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "21d7e67f740d"
+         }
+        ]
+       },
+       {
+        "name": "attendance",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Attendance",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "68ed0260374b"
+         }
+        ]
+       },
+       {
+        "name": "avg_attendance_per_home_game",
+        "logicalType": "number",
+        "required": false,
+        "description": "Only counts home games where attendance was recorded, so missing data does not drag the average down.",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "4e13dece1f0b"
+         }
+        ]
+       },
+       {
+        "name": "payroll",
+        "logicalType": "integer",
+        "required": false,
+        "description": "Sum of player salaries. NULL before 1985.",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "e14b9921dc17"
+         }
+        ]
+       },
+       {
+        "name": "cost_per_win",
+        "logicalType": "number",
+        "required": false,
+        "description": "Wins in the denominator are restricted to seasons that have payroll, otherwise pre-1985 wins would flatter the ratio.",
+        "customProperties": [
+         {
+          "property": "kind",
+          "value": "measure"
+         },
+         {
+          "property": "exprHash",
+          "value": "9874951be163"
+         }
+        ]
+       }
+      ],
+      "quality": [
+       {
+        "name": "SEM-LT-001",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "The 2001 Seattle Mariners show the record 116 wins and a +300 run differential.",
+        "implementation": {
+         "test_type": "expect",
+         "dimensions": [
+          "team_name",
+          "season"
+         ],
+         "measures": [
+          "wins",
+          "run_differential"
+         ],
+         "where": "team_name = 'Seattle Mariners' AND season = 2001",
+         "expect": [
+          {
+           "team_name": "Seattle Mariners",
+           "season": 2001,
+           "wins": 116,
+           "run_differential": 300
+          }
+         ],
+         "tolerance": 0
+        }
+       },
+       {
+        "name": "SEM-LT-002",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Wins by season equal the sum from the gold fact.",
+        "implementation": {
+         "test_type": "reconcile",
+         "dimensions": [
+          "season"
+         ],
+         "measures": [
+          "wins"
+         ],
+         "tolerance": 0,
+         "compare_sql": "SELECT season, SUM(w) AS wins FROM gold.fact_team_season GROUP BY season"
+        }
+       },
+       {
+        "name": "SEM-LT-003",
+        "type": "custom",
+        "engine": "fbl-semantic-checks",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Win percentage is between 0 and 1.",
+        "implementation": {
+         "test_type": "bounds",
+         "dimensions": [
+          "season"
+         ],
+         "bounds": {
+          "win_pct": [
+           0,
+           1
+          ]
+         }
+        }
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "fbl.silver.batting",
+   "checksum": "54095e6f00c88ee2",
+   "contract": {
+    "apiVersion": "v3.1.0",
+    "kind": "DataContract",
+    "id": "fbl.silver.batting",
+    "name": "FBL batting (silver)",
+    "version": "1.0.0",
+    "status": "active",
+    "domain": "baseball_operations",
+    "dataProduct": "fbl",
+    "description": {
+     "purpose": "Typed, cleaned, deduplicated batting rows. Every row here has passed every quarantine rule below.",
+     "limitations": "Rejected rows are NOT in this table; they are in governance.dq_quarantine with the reason. Optional columns may still be NULL.",
+     "usage": "Internal layer for data engineering. Consumers read gold or the semantic layer."
+    },
+    "tags": [
+     "fbl",
+     "silver"
+    ],
+    "customProperties": [
+     {
+      "property": "layer",
+      "value": "silver"
+     },
+     {
+      "property": "owner",
+      "value": "Data Engineering"
+     },
+     {
+      "property": "dependsOn",
+      "value": "fbl.source.batting"
+     }
+    ],
+    "schema": [
+     {
+      "name": "fbl_batting",
+      "physicalName": "silver.fbl_batting",
+      "logicalType": "object",
+      "physicalType": "table",
+      "description": "Clean batting records.",
+      "customProperties": [
+       {
+        "property": "entity",
+        "value": "batting"
+       }
+      ],
+      "properties": [
+       {
+        "name": "player_id",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Player. Part of the key.",
+        "primaryKey": true,
+        "primaryKeyPosition": 1,
+        "relationships": [
+         {
+          "to": "fbl_player.player_id",
+          "type": "foreignKey"
+         }
+        ],
+        "customProperties": [
+         {
+          "property": "standardize",
+          "value": "upper"
+         }
+        ]
+       },
+       {
+        "name": "season",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Season year. Part of the key.",
+        "primaryKey": true,
+        "primaryKeyPosition": 2
+       },
+       {
+        "name": "team_id",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Team played for. Part of the key.",
+        "primaryKey": true,
+        "primaryKeyPosition": 3,
+        "relationships": [
+         {
+          "to": "fbl_team.team_id",
+          "type": "foreignKey"
+         }
+        ],
+        "customProperties": [
+         {
+          "property": "standardize",
+          "value": "upper"
+         }
+        ]
+       },
+       {
+        "name": "g",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Games played (0 to 162)."
+       },
+       {
+        "name": "ab",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "At bats."
+       },
+       {
+        "name": "h",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Hits. Cannot exceed at bats."
+       },
+       {
+        "name": "doubles",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Doubles."
+       },
+       {
+        "name": "triples",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Triples."
+       },
+       {
+        "name": "hr",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Home runs. Cannot exceed hits."
+       },
+       {
+        "name": "rbi",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Runs batted in."
+       },
+       {
+        "name": "bb",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Walks."
+       },
+       {
+        "name": "so",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Strikeouts."
+       },
+       {
+        "name": "sb",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Stolen bases. Cannot be negative."
+       }
+      ],
+      "quality": [
+       {
+        "name": "BAT-001",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "uniqueness",
+        "severity": "warning",
+        "description": "Identical duplicate batting rows are removed automatically (first copy kept)",
+        "implementation": {
+         "rule_type": "exact_duplicate",
+         "columns": "*",
+         "expression": "",
+         "action": "dedupe",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "BAT-002",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "uniqueness",
+        "severity": "error",
+        "description": "One batting line per player, season and team. Conflicting duplicates are rejected for human review",
+        "implementation": {
+         "rule_type": "unique_strict",
+         "columns": [
+          "player_id",
+          "season",
+          "team_id"
+         ],
+         "expression": "",
+         "action": "quarantine",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "BAT-003",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "completeness",
+        "severity": "error",
+        "description": "Required batting fields must be present (non-numeric text becomes NULL and is caught here)",
+        "implementation": {
+         "rule_type": "not_null",
+         "columns": [
+          "player_id",
+          "season",
+          "team_id",
+          "g",
+          "ab",
+          "h",
+          "doubles",
+          "triples",
+          "hr",
+          "rbi",
+          "bb",
+          "so",
+          "sb"
+         ],
+         "expression": "",
+         "action": "quarantine",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "BAT-004",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "conformity",
+        "severity": "error",
+        "description": "Season must be between 2008 and the current year",
+        "implementation": {
+         "rule_type": "range",
+         "columns": [
+          "season"
+         ],
+         "expression": "2008 AND year(current_date())",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "BAT-005",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "conformity",
+        "severity": "error",
+        "description": "Games played must be between 0 and 162",
+        "implementation": {
+         "rule_type": "range",
+         "columns": [
+          "g"
+         ],
+         "expression": "0 AND 162",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "BAT-006",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Business rule: hits cannot exceed at bats",
+        "implementation": {
+         "rule_type": "custom",
+         "columns": [
+          "h"
+         ],
+         "expression": "h <= ab",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "BAT-007",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Business rule: home runs cannot exceed hits",
+        "implementation": {
+         "rule_type": "custom",
+         "columns": [
+          "hr"
+         ],
+         "expression": "hr <= h",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "BAT-008",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Business rule: extra-base hits cannot exceed total hits",
+        "implementation": {
+         "rule_type": "custom",
+         "columns": [
+          "h"
+         ],
+         "expression": "doubles + triples + hr <= h",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "BAT-009",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Business rule: no more than 6 at bats per game played",
+        "implementation": {
+         "rule_type": "custom",
+         "columns": [
+          "ab"
+         ],
+         "expression": "ab <= g * 6",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "BAT-010",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Business rule: counting stats cannot be negative",
+        "implementation": {
+         "rule_type": "custom",
+         "columns": [
+          "ab"
+         ],
+         "expression": "ab >= 0 AND h >= 0 AND doubles >= 0 AND triples >= 0 AND hr >= 0 AND rbi >= 0 AND bb >= 0 AND so >= 0 AND sb >= 0",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "BAT-011",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "consistency",
+        "severity": "error",
+        "description": "player_id must exist in the clean player table",
+        "implementation": {
+         "rule_type": "referential",
+         "columns": [
+          "player_id"
+         ],
+         "expression": "silver.fbl_player.player_id",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "BAT-012",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "consistency",
+        "severity": "error",
+        "description": "team_id must exist in the clean team table",
+        "implementation": {
+         "rule_type": "referential",
+         "columns": [
+          "team_id"
+         ],
+         "expression": "silver.fbl_team.team_id",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "fbl.silver.player",
+   "checksum": "ccaf03004ed81f90",
+   "contract": {
+    "apiVersion": "v3.1.0",
+    "kind": "DataContract",
+    "id": "fbl.silver.player",
+    "name": "FBL player (silver)",
+    "version": "1.0.0",
+    "status": "active",
+    "domain": "baseball_operations",
+    "dataProduct": "fbl",
+    "description": {
+     "purpose": "Typed, cleaned, deduplicated player rows. Every row here has passed every quarantine rule below.",
+     "limitations": "Rejected rows are NOT in this table; they are in governance.dq_quarantine with the reason. Optional columns may still be NULL.",
+     "usage": "Internal layer for data engineering. Consumers read gold or the semantic layer."
+    },
+    "tags": [
+     "fbl",
+     "silver"
+    ],
+    "customProperties": [
+     {
+      "property": "layer",
+      "value": "silver"
+     },
+     {
+      "property": "owner",
+      "value": "Data Engineering"
+     },
+     {
+      "property": "dependsOn",
+      "value": "fbl.source.player"
+     }
+    ],
+    "schema": [
+     {
+      "name": "fbl_player",
+      "physicalName": "silver.fbl_player",
+      "logicalType": "object",
+      "physicalType": "table",
+      "description": "Clean player records.",
+      "customProperties": [
+       {
+        "property": "entity",
+        "value": "player"
+       }
+      ],
+      "properties": [
+       {
+        "name": "player_id",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Player identifier, e.g. P001. Primary key.",
+        "primaryKey": true,
+        "primaryKeyPosition": 1,
+        "customProperties": [
+         {
+          "property": "standardize",
+          "value": "upper"
+         }
+        ]
+       },
+       {
+        "name": "first_name",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Given name."
+       },
+       {
+        "name": "last_name",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Family name."
+       },
+       {
+        "name": "birth_date",
+        "logicalType": "date",
+        "physicalType": "DATE",
+        "required": true,
+        "description": "Date of birth. Personal data. Player must be at least 16.",
+        "classification": "personal"
+       },
+       {
+        "name": "bats",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Batting side: L, R or B (switch).",
+        "customProperties": [
+         {
+          "property": "standardize",
+          "value": "upper"
+         }
+        ]
+       },
+       {
+        "name": "throws",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Throwing hand: L or R.",
+        "customProperties": [
+         {
+          "property": "standardize",
+          "value": "upper"
+         }
+        ]
+       },
+       {
+        "name": "team_id",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Team the player belongs to.",
+        "relationships": [
+         {
+          "to": "fbl_team.team_id",
+          "type": "foreignKey"
+         }
+        ],
+        "customProperties": [
+         {
+          "property": "standardize",
+          "value": "upper"
+         }
+        ]
+       },
+       {
+        "name": "position",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Position code: P, C, 1B, 2B, 3B, SS, LF, CF, RF or DH.",
+        "customProperties": [
+         {
+          "property": "standardize",
+          "value": "upper"
+         }
+        ]
+       },
+       {
+        "name": "height_in",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Height in inches (60 to 84)."
+       },
+       {
+        "name": "weight_lb",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Weight in pounds (120 to 350 expected)."
+       },
+       {
+        "name": "nickname",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": false,
+        "description": "Optional nickname. Shown as 'None' in gold."
+       }
+      ],
+      "quality": [
+       {
+        "name": "PLR-001",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "uniqueness",
+        "severity": "warning",
+        "description": "Identical duplicate player rows are removed automatically (first copy kept)",
+        "implementation": {
+         "rule_type": "exact_duplicate",
+         "columns": "*",
+         "expression": "",
+         "action": "dedupe",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "PLR-002",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "uniqueness",
+        "severity": "error",
+        "description": "player_id must identify exactly one player. Conflicting duplicates are rejected for human review",
+        "implementation": {
+         "rule_type": "unique_strict",
+         "columns": [
+          "player_id"
+         ],
+         "expression": "",
+         "action": "quarantine",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "PLR-003",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "completeness",
+        "severity": "error",
+        "description": "Required player fields must be present",
+        "implementation": {
+         "rule_type": "not_null",
+         "columns": [
+          "player_id",
+          "first_name",
+          "last_name",
+          "birth_date",
+          "bats",
+          "throws",
+          "team_id",
+          "position",
+          "height_in",
+          "weight_lb"
+         ],
+         "expression": "",
+         "action": "quarantine",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "PLR-004",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "conformity",
+        "severity": "error",
+        "description": "Bats must be L, R or B",
+        "implementation": {
+         "rule_type": "allowed_values",
+         "columns": [
+          "bats"
+         ],
+         "expression": "'L','R','B'",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "PLR-005",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "conformity",
+        "severity": "error",
+        "description": "Throws must be L or R",
+        "implementation": {
+         "rule_type": "allowed_values",
+         "columns": [
+          "throws"
+         ],
+         "expression": "'L','R'",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "PLR-006",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "conformity",
+        "severity": "error",
+        "description": "Position must be a valid code",
+        "implementation": {
+         "rule_type": "allowed_values",
+         "columns": [
+          "position"
+         ],
+         "expression": "'P','C','1B','2B','3B','SS','LF','CF','RF','DH'",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "PLR-007",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "conformity",
+        "severity": "error",
+        "description": "Height must be between 60 and 84 inches",
+        "implementation": {
+         "rule_type": "range",
+         "columns": [
+          "height_in"
+         ],
+         "expression": "60 AND 84",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "PLR-008",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "conformity",
+        "severity": "warning",
+        "description": "Weight outside 120-350 lb is unusual: logged, row kept",
+        "implementation": {
+         "rule_type": "range",
+         "columns": [
+          "weight_lb"
+         ],
+         "expression": "120 AND 350",
+         "action": "warn",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "PLR-009",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Business rule: a player must be at least 16 years old (also catches future birth dates)",
+        "implementation": {
+         "rule_type": "custom",
+         "columns": [
+          "birth_date"
+         ],
+         "expression": "months_between(current_date(), birth_date) >= 16 * 12",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "PLR-010",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "consistency",
+        "severity": "error",
+        "description": "team_id must exist in the clean team table",
+        "implementation": {
+         "rule_type": "referential",
+         "columns": [
+          "team_id"
+         ],
+         "expression": "silver.fbl_team.team_id",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "PLR-011",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "conformity",
+        "severity": "warning",
+        "description": "bats was trimmed/upper-cased (auto-corrected)",
+        "implementation": {
+         "rule_type": "standardized",
+         "columns": [
+          "bats"
+         ],
+         "expression": "",
+         "action": "standardize",
+         "owner": "Data Engineering"
+        }
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "fbl.silver.team",
+   "checksum": "201bd2606ccdffa1",
+   "contract": {
+    "apiVersion": "v3.1.0",
+    "kind": "DataContract",
+    "id": "fbl.silver.team",
+    "name": "FBL team (silver)",
+    "version": "1.0.0",
+    "status": "active",
+    "domain": "baseball_operations",
+    "dataProduct": "fbl",
+    "description": {
+     "purpose": "Typed, cleaned, deduplicated team rows. Every row here has passed every quarantine rule below.",
+     "limitations": "Rejected rows are NOT in this table; they are in governance.dq_quarantine with the reason. Optional columns may still be NULL.",
+     "usage": "Internal layer for data engineering. Consumers read gold or the semantic layer."
+    },
+    "tags": [
+     "fbl",
+     "silver"
+    ],
+    "customProperties": [
+     {
+      "property": "layer",
+      "value": "silver"
+     },
+     {
+      "property": "owner",
+      "value": "Data Engineering"
+     },
+     {
+      "property": "dependsOn",
+      "value": "fbl.source.team"
+     }
+    ],
+    "schema": [
+     {
+      "name": "fbl_team",
+      "physicalName": "silver.fbl_team",
+      "logicalType": "object",
+      "physicalType": "table",
+      "description": "Clean team records.",
+      "customProperties": [
+       {
+        "property": "entity",
+        "value": "team"
+       }
+      ],
+      "properties": [
+       {
+        "name": "team_id",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Team identifier, e.g. T01. Primary key.",
+        "primaryKey": true,
+        "primaryKeyPosition": 1,
+        "customProperties": [
+         {
+          "property": "standardize",
+          "value": "upper"
+         }
+        ]
+       },
+       {
+        "name": "team_name",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Full team name."
+       },
+       {
+        "name": "city",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Home city."
+       },
+       {
+        "name": "league",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "League: North or South.",
+        "customProperties": [
+         {
+          "property": "standardize",
+          "value": "initcap"
+         }
+        ]
+       },
+       {
+        "name": "founded_year",
+        "logicalType": "integer",
+        "physicalType": "INT",
+        "required": true,
+        "description": "Year the franchise was founded (league started in 2000)."
+       },
+       {
+        "name": "home_park",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Home ballpark."
+       },
+       {
+        "name": "payroll_cap_musd",
+        "logicalType": "number",
+        "physicalType": "DOUBLE",
+        "required": true,
+        "description": "Payroll cap in millions of USD. Must be positive."
+       },
+       {
+        "name": "mascot",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": false,
+        "description": "Team mascot. Optional: shown as 'None' in gold."
+       }
+      ],
+      "quality": [
+       {
+        "name": "TEAM-001",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "uniqueness",
+        "severity": "warning",
+        "description": "Identical duplicate team rows are removed automatically (first copy kept)",
+        "implementation": {
+         "rule_type": "exact_duplicate",
+         "columns": "*",
+         "expression": "",
+         "action": "dedupe",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "TEAM-002",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "uniqueness",
+        "severity": "error",
+        "description": "team_id must identify exactly one team. Conflicting duplicates are rejected for human review",
+        "implementation": {
+         "rule_type": "unique_strict",
+         "columns": [
+          "team_id"
+         ],
+         "expression": "",
+         "action": "quarantine",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "TEAM-003",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "completeness",
+        "severity": "error",
+        "description": "Required team fields must be present",
+        "implementation": {
+         "rule_type": "not_null",
+         "columns": [
+          "team_id",
+          "team_name",
+          "city",
+          "league",
+          "founded_year",
+          "home_park",
+          "payroll_cap_musd"
+         ],
+         "expression": "",
+         "action": "quarantine",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "TEAM-004",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "conformity",
+        "severity": "error",
+        "description": "League must be North or South",
+        "implementation": {
+         "rule_type": "allowed_values",
+         "columns": [
+          "league"
+         ],
+         "expression": "'North','South'",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "TEAM-005",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "conformity",
+        "severity": "error",
+        "description": "Founded year must be between 2000 and the current year (league started in 2000)",
+        "implementation": {
+         "rule_type": "range",
+         "columns": [
+          "founded_year"
+         ],
+         "expression": "2000 AND year(current_date())",
+         "action": "quarantine",
+         "owner": "Baseball Operations"
+        }
+       },
+       {
+        "name": "TEAM-006",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "accuracy",
+        "severity": "error",
+        "description": "Business rule: payroll cap must be a positive number of millions",
+        "implementation": {
+         "rule_type": "custom",
+         "columns": [
+          "payroll_cap_musd"
+         ],
+         "expression": "payroll_cap_musd > 0",
+         "action": "quarantine",
+         "owner": "Baseball Finance"
+        }
+       },
+       {
+        "name": "TEAM-007",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "conformity",
+        "severity": "warning",
+        "description": "League text was trimmed/re-cased (auto-corrected)",
+        "implementation": {
+         "rule_type": "standardized",
+         "columns": [
+          "league"
+         ],
+         "expression": "",
+         "action": "standardize",
+         "owner": "Data Engineering"
+        }
+       },
+       {
+        "name": "TEAM-008",
+        "type": "custom",
+        "engine": "fbl-dq-engine",
+        "dimension": "conformity",
+        "severity": "warning",
+        "description": "team_id was trimmed/upper-cased (auto-corrected)",
+        "implementation": {
+         "rule_type": "standardized",
+         "columns": [
+          "team_id"
+         ],
+         "expression": "",
+         "action": "standardize",
+         "owner": "Data Engineering"
+        }
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "fbl.source.batting",
+   "checksum": "aeee23d3850dcf1c",
+   "contract": {
+    "apiVersion": "v3.1.0",
+    "kind": "DataContract",
+    "id": "fbl.source.batting",
+    "name": "FBL batting file (as delivered)",
+    "version": "1.0.0",
+    "status": "active",
+    "domain": "baseball_operations",
+    "dataProduct": "fbl",
+    "description": {
+     "purpose": "The batting.csv file the league office sends us. Promise: the listed columns are present and the file is not empty.",
+     "limitations": "Values arrive as text and may be blank, duplicated, mis-cased or invalid. Row-level validity is NOT promised here; silver enforces it.",
+     "usage": "Load as strings into bronze. Never clean values before bronze."
+    },
+    "tags": [
+     "fbl",
+     "source"
+    ],
+    "customProperties": [
+     {
+      "property": "layer",
+      "value": "source"
+     },
+     {
+      "property": "owner",
+      "value": "Baseball Operations (file owner)"
+     },
+     {
+      "property": "sourceSystem",
+      "value": "league_office_csv"
+     }
+    ],
+    "slaProperties": [
+     {
+      "property": "frequency",
+      "value": 1,
+      "unit": "d",
+      "element": "fbl_batting"
+     },
+     {
+      "property": "timeOfAvailability",
+      "value": "06:00",
+      "unit": "UTC",
+      "element": "fbl_batting"
+     }
+    ],
+    "schema": [
+     {
+      "name": "fbl_batting",
+      "physicalName": "bronze.fbl_batting",
+      "logicalType": "object",
+      "physicalType": "table",
+      "description": "Raw batting.csv, all columns as delivered.",
+      "customProperties": [
+       {
+        "property": "entity",
+        "value": "batting"
+       },
+       {
+        "property": "landingFolder",
+        "value": "batting"
+       },
+       {
+        "property": "fileName",
+        "value": "batting.csv"
+       }
+      ],
+      "quality": [
+       {
+        "metric": "rowCount",
+        "mustBeGreaterThan": 0,
+        "type": "library",
+        "dimension": "completeness",
+        "severity": "error",
+        "description": "The delivered file must contain at least one row."
+       }
+      ],
+      "properties": [
+       {
+        "name": "player_id",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Player. Part of the key. (raw text, present in the file header)"
+       },
+       {
+        "name": "season",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Season year. Part of the key. (raw text, present in the file header)"
+       },
+       {
+        "name": "team_id",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Team played for. Part of the key. (raw text, present in the file header)"
+       },
+       {
+        "name": "g",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Games played (0 to 162). (raw text, present in the file header)"
+       },
+       {
+        "name": "ab",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "At bats. (raw text, present in the file header)"
+       },
+       {
+        "name": "h",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Hits. Cannot exceed at bats. (raw text, present in the file header)"
+       },
+       {
+        "name": "doubles",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Doubles. (raw text, present in the file header)"
+       },
+       {
+        "name": "triples",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Triples. (raw text, present in the file header)"
+       },
+       {
+        "name": "hr",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Home runs. Cannot exceed hits. (raw text, present in the file header)"
+       },
+       {
+        "name": "rbi",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Runs batted in. (raw text, present in the file header)"
+       },
+       {
+        "name": "bb",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Walks. (raw text, present in the file header)"
+       },
+       {
+        "name": "so",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Strikeouts. (raw text, present in the file header)"
+       },
+       {
+        "name": "sb",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Stolen bases. Cannot be negative. (raw text, present in the file header)"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "fbl.source.player",
+   "checksum": "56f4102a7972bc34",
+   "contract": {
+    "apiVersion": "v3.1.0",
+    "kind": "DataContract",
+    "id": "fbl.source.player",
+    "name": "FBL player file (as delivered)",
+    "version": "1.0.0",
+    "status": "active",
+    "domain": "baseball_operations",
+    "dataProduct": "fbl",
+    "description": {
+     "purpose": "The players.csv file the league office sends us. Promise: the listed columns are present and the file is not empty.",
+     "limitations": "Values arrive as text and may be blank, duplicated, mis-cased or invalid. Row-level validity is NOT promised here; silver enforces it.",
+     "usage": "Load as strings into bronze. Never clean values before bronze."
+    },
+    "tags": [
+     "fbl",
+     "source"
+    ],
+    "customProperties": [
+     {
+      "property": "layer",
+      "value": "source"
+     },
+     {
+      "property": "owner",
+      "value": "Baseball Operations (file owner)"
+     },
+     {
+      "property": "sourceSystem",
+      "value": "league_office_csv"
+     }
+    ],
+    "slaProperties": [
+     {
+      "property": "frequency",
+      "value": 1,
+      "unit": "d",
+      "element": "fbl_player"
+     },
+     {
+      "property": "timeOfAvailability",
+      "value": "06:00",
+      "unit": "UTC",
+      "element": "fbl_player"
+     }
+    ],
+    "schema": [
+     {
+      "name": "fbl_player",
+      "physicalName": "bronze.fbl_player",
+      "logicalType": "object",
+      "physicalType": "table",
+      "description": "Raw players.csv, all columns as delivered.",
+      "customProperties": [
+       {
+        "property": "entity",
+        "value": "player"
+       },
+       {
+        "property": "landingFolder",
+        "value": "players"
+       },
+       {
+        "property": "fileName",
+        "value": "players.csv"
+       }
+      ],
+      "quality": [
+       {
+        "metric": "rowCount",
+        "mustBeGreaterThan": 0,
+        "type": "library",
+        "dimension": "completeness",
+        "severity": "error",
+        "description": "The delivered file must contain at least one row."
+       }
+      ],
+      "properties": [
+       {
+        "name": "player_id",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Player identifier, e.g. P001. Primary key. (raw text, present in the file header)"
+       },
+       {
+        "name": "first_name",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Given name. (raw text, present in the file header)"
+       },
+       {
+        "name": "last_name",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Family name. (raw text, present in the file header)"
+       },
+       {
+        "name": "birth_date",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Date of birth. Personal data. Player must be at least 16. (raw text, present in the file header)"
+       },
+       {
+        "name": "bats",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Batting side: L, R or B (switch). (raw text, present in the file header)"
+       },
+       {
+        "name": "throws",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Throwing hand: L or R. (raw text, present in the file header)"
+       },
+       {
+        "name": "team_id",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Team the player belongs to. (raw text, present in the file header)"
+       },
+       {
+        "name": "position",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Position code: P, C, 1B, 2B, 3B, SS, LF, CF, RF or DH. (raw text, present in the file header)"
+       },
+       {
+        "name": "height_in",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Height in inches (60 to 84). (raw text, present in the file header)"
+       },
+       {
+        "name": "weight_lb",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Weight in pounds (120 to 350 expected). (raw text, present in the file header)"
+       },
+       {
+        "name": "nickname",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Optional nickname. Shown as 'None' in gold. (raw text, present in the file header)"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "fbl.source.team",
+   "checksum": "826e7d9c0a2eb05f",
+   "contract": {
+    "apiVersion": "v3.1.0",
+    "kind": "DataContract",
+    "id": "fbl.source.team",
+    "name": "FBL team file (as delivered)",
+    "version": "1.0.0",
+    "status": "active",
+    "domain": "baseball_operations",
+    "dataProduct": "fbl",
+    "description": {
+     "purpose": "The teams.csv file the league office sends us. Promise: the listed columns are present and the file is not empty.",
+     "limitations": "Values arrive as text and may be blank, duplicated, mis-cased or invalid. Row-level validity is NOT promised here; silver enforces it.",
+     "usage": "Load as strings into bronze. Never clean values before bronze."
+    },
+    "tags": [
+     "fbl",
+     "source"
+    ],
+    "customProperties": [
+     {
+      "property": "layer",
+      "value": "source"
+     },
+     {
+      "property": "owner",
+      "value": "Baseball Operations (file owner)"
+     },
+     {
+      "property": "sourceSystem",
+      "value": "league_office_csv"
+     }
+    ],
+    "slaProperties": [
+     {
+      "property": "frequency",
+      "value": 1,
+      "unit": "d",
+      "element": "fbl_team"
+     },
+     {
+      "property": "timeOfAvailability",
+      "value": "06:00",
+      "unit": "UTC",
+      "element": "fbl_team"
+     }
+    ],
+    "schema": [
+     {
+      "name": "fbl_team",
+      "physicalName": "bronze.fbl_team",
+      "logicalType": "object",
+      "physicalType": "table",
+      "description": "Raw teams.csv, all columns as delivered.",
+      "customProperties": [
+       {
+        "property": "entity",
+        "value": "team"
+       },
+       {
+        "property": "landingFolder",
+        "value": "teams"
+       },
+       {
+        "property": "fileName",
+        "value": "teams.csv"
+       }
+      ],
+      "quality": [
+       {
+        "metric": "rowCount",
+        "mustBeGreaterThan": 0,
+        "type": "library",
+        "dimension": "completeness",
+        "severity": "error",
+        "description": "The delivered file must contain at least one row."
+       }
+      ],
+      "properties": [
+       {
+        "name": "team_id",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Team identifier, e.g. T01. Primary key. (raw text, present in the file header)"
+       },
+       {
+        "name": "team_name",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Full team name. (raw text, present in the file header)"
+       },
+       {
+        "name": "city",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Home city. (raw text, present in the file header)"
+       },
+       {
+        "name": "league",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "League: North or South. (raw text, present in the file header)"
+       },
+       {
+        "name": "founded_year",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Year the franchise was founded (league started in 2000). (raw text, present in the file header)"
+       },
+       {
+        "name": "home_park",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Home ballpark. (raw text, present in the file header)"
+       },
+       {
+        "name": "payroll_cap_musd",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Payroll cap in millions of USD. Must be positive. (raw text, present in the file header)"
+       },
+       {
+        "name": "mascot",
+        "logicalType": "string",
+        "physicalType": "STRING",
+        "required": true,
+        "description": "Team mascot. Optional: shown as 'None' in gold. (raw text, present in the file header)"
+       }
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "definitions": {
+  "mv_fbl_batting.sql": "-- FBL batting metrics for consumers. Governed by contract fbl.semantic.mv_fbl_batting.\n-- OBP and OPS are \"approx\": the fictional league data has no hit-by-pitch or sacrifice-fly columns.\nCREATE OR REPLACE VIEW {{catalog}}.semantic.mv_fbl_batting\nWITH METRICS\nLANGUAGE YAML\nAS $$\nversion: 1.1\ncomment: \"FBL batting metrics. Source grain is player-season-team. Ratios are computed from summed components, never averaged.\"\nsource: {{catalog}}.gold.fbl_fact_batting\n\njoins:\n  - name: player\n    source: {{catalog}}.gold.fbl_dim_player\n    'on': source.player_id = player.player_id\n    rely:\n      at_most_one_match: true\n  - name: team\n    source: {{catalog}}.gold.fbl_dim_team\n    'on': source.team_id = team.team_id\n    rely:\n      at_most_one_match: true\n\nfields:\n  - name: season\n    expr: source.season\n    display_name: \"Season\"\n    synonyms: [\"year\"]\n  - name: player_name\n    expr: player.full_name\n    display_name: \"Player\"\n    synonyms: [\"batter\", \"hitter\"]\n  - name: batting_hand\n    expr: player.bats\n    display_name: \"Bats\"\n  - name: position\n    expr: player.position\n    display_name: \"Position\"\n  - name: team_name\n    expr: team.team_name\n    display_name: \"Team\"\n  - name: league\n    expr: team.league\n    display_name: \"League\"\n  - name: city\n    expr: team.city\n    display_name: \"City\"\n\nmeasures:\n  - name: games\n    expr: SUM(g)\n    display_name: \"Games\"\n  - name: at_bats\n    expr: SUM(ab)\n    display_name: \"At Bats\"\n    synonyms: [\"AB\"]\n  - name: hits\n    expr: SUM(h)\n    display_name: \"Hits\"\n    synonyms: [\"H\"]\n  - name: doubles\n    expr: SUM(doubles)\n    display_name: \"Doubles\"\n  - name: triples\n    expr: SUM(triples)\n    display_name: \"Triples\"\n  - name: home_runs\n    expr: SUM(hr)\n    display_name: \"Home Runs\"\n    synonyms: [\"HR\", \"homers\"]\n  - name: rbi\n    expr: SUM(rbi)\n    display_name: \"RBI\"\n  - name: walks\n    expr: SUM(bb)\n    display_name: \"Walks\"\n    synonyms: [\"BB\"]\n  - name: strikeouts\n    expr: SUM(so)\n    display_name: \"Strikeouts\"\n    synonyms: [\"SO\", \"K\"]\n  - name: stolen_bases\n    expr: SUM(sb)\n    display_name: \"Stolen Bases\"\n    synonyms: [\"SB\"]\n  - name: batting_avg\n    expr: SUM(h) / NULLIF(SUM(ab), 0)\n    display_name: \"Batting Average\"\n    synonyms: [\"AVG\", \"BA\"]\n    comment: \"Summed hits divided by summed at bats. Never average player averages.\"\n  - name: on_base_pct_approx\n    expr: (SUM(h) + SUM(bb)) / NULLIF(SUM(ab) + SUM(bb), 0)\n    display_name: \"On-Base Percentage (approx)\"\n    synonyms: [\"OBP\"]\n  - name: slugging_pct\n    expr: SUM(total_bases) / NULLIF(SUM(ab), 0)\n    display_name: \"Slugging Percentage\"\n    synonyms: [\"SLG\"]\n  - name: ops_approx\n    expr: MEASURE(on_base_pct_approx) + MEASURE(slugging_pct)\n    display_name: \"OPS (approx)\"\n    synonyms: [\"OPS\"]\n  - name: home_run_rate\n    expr: SUM(hr) * 1.0 / NULLIF(SUM(ab), 0)\n    display_name: \"Home Run Rate (per at bat)\"\n  - name: batters\n    expr: COUNT(DISTINCT source.player_id)\n    display_name: \"Distinct Batters\"\n    comment: \"Non-additive distinct count: do not sum across groups.\"\n$$;\n",
+  "mv_fbl_roster.sql": "-- FBL roster metrics for consumers. Governed by contract fbl.semantic.mv_fbl_roster.\nCREATE OR REPLACE VIEW {{catalog}}.semantic.mv_fbl_roster\nWITH METRICS\nLANGUAGE YAML\nAS $$\nversion: 1.1\ncomment: \"FBL roster metrics. Source grain is one row per player.\"\nsource: {{catalog}}.gold.fbl_dim_player\n\njoins:\n  - name: team\n    source: {{catalog}}.gold.fbl_dim_team\n    'on': source.team_id = team.team_id\n    rely:\n      at_most_one_match: true\n\nfields:\n  - name: team_name\n    expr: team.team_name\n    display_name: \"Team\"\n  - name: league\n    expr: team.league\n    display_name: \"League\"\n  - name: position\n    expr: source.position\n    display_name: \"Position\"\n  - name: batting_hand\n    expr: source.bats\n    display_name: \"Bats\"\n  - name: throwing_hand\n    expr: source.throws\n    display_name: \"Throws\"\n\nmeasures:\n  - name: players\n    expr: COUNT(1)\n    display_name: \"Players\"\n    synonyms: [\"headcount\", \"roster size\"]\n  - name: avg_height_in\n    expr: AVG(height_in)\n    display_name: \"Average Height (in)\"\n  - name: avg_weight_lb\n    expr: AVG(weight_lb)\n    display_name: \"Average Weight (lb)\"\n  - name: switch_hitters\n    expr: COUNT(1) FILTER (WHERE source.bats = 'B')\n    display_name: \"Switch Hitters\"\n  - name: teams\n    expr: COUNT(DISTINCT source.team_id)\n    display_name: \"Distinct Teams\"\n$$;\n",
+  "10_mv_batting.sql": "-- METRIC VIEW = governed semantic object. Define each KPI ONCE here; every dashboard, notebook, Genie space\n-- and BI tool then gets the same answer. Query with: SELECT dim, MEASURE(measure) FROM view GROUP BY dim.\n-- Key idea: measures are aggregations evaluated at QUERY time at whatever grain the caller groups by.\nCREATE OR REPLACE VIEW {{catalog}}.semantic.mv_batting\nWITH METRICS\nLANGUAGE YAML\nAS $$\nversion: 1.1\ncomment: \"Batting metrics. Source grain is player-season-stint. Ratios are computed from summed components, never averaged.\"\nsource: {{catalog}}.gold.fact_batting_season\n\njoins:\n  - name: player\n    source: {{catalog}}.gold.dim_player\n    'on': source.player_key = player.player_key\n    rely:\n      at_most_one_match: true\n  - name: team\n    source: {{catalog}}.gold.dim_team_season\n    'on': source.team_season_key = team.team_season_key\n    rely:\n      at_most_one_match: true\n  - name: calendar\n    source: {{catalog}}.gold.dim_season\n    'on': source.season = calendar.season\n    rely:\n      at_most_one_match: true\n\nfields:\n  - name: season\n    expr: source.season\n    display_name: \"Season\"\n    synonyms: [\"year\"]\n  - name: decade\n    expr: calendar.decade\n    display_name: \"Decade\"\n  - name: baseball_era\n    expr: calendar.era\n    display_name: \"Baseball Era\"\n    comment: \"Business-defined era classification, see glossary term Era.\"\n  - name: player_name\n    expr: player.full_name\n    display_name: \"Player\"\n    synonyms: [\"batter\", \"hitter\", \"name\"]\n  - name: batting_hand\n    expr: player.batting_hand\n    display_name: \"Bats\"\n    synonyms: [\"handedness\"]\n  - name: birth_country\n    expr: player.birth_country\n    display_name: \"Birth Country\"\n  - name: team_name\n    expr: team.team_name\n    display_name: \"Team\"\n  - name: franchise\n    expr: team.franchise_name\n    display_name: \"Franchise\"\n  - name: league\n    expr: team.league_id\n    display_name: \"League\"\n  - name: division\n    expr: team.division_id\n    display_name: \"Division\"\n\nmeasures:\n  - name: games\n    expr: SUM(g)\n    display_name: \"Games\"\n  - name: at_bats\n    expr: SUM(ab)\n    display_name: \"At Bats\"\n    synonyms: [\"AB\"]\n  - name: plate_appearances\n    expr: SUM(plate_appearances)\n    display_name: \"Plate Appearances\"\n    synonyms: [\"PA\"]\n  - name: runs\n    expr: SUM(r)\n    display_name: \"Runs\"\n  - name: hits\n    expr: SUM(h)\n    display_name: \"Hits\"\n    synonyms: [\"H\"]\n  - name: home_runs\n    expr: SUM(hr)\n    display_name: \"Home Runs\"\n    synonyms: [\"HR\", \"homers\", \"dingers\"]\n  - name: rbi\n    expr: SUM(rbi)\n    display_name: \"RBI\"\n    synonyms: [\"runs batted in\"]\n  - name: stolen_bases\n    expr: SUM(sb)\n    display_name: \"Stolen Bases\"\n    synonyms: [\"SB\", \"steals\"]\n  - name: walks\n    expr: SUM(bb)\n    display_name: \"Walks\"\n    synonyms: [\"BB\", \"bases on balls\"]\n  - name: strikeouts\n    expr: SUM(so)\n    display_name: \"Strikeouts\"\n    synonyms: [\"SO\", \"K\"]\n  - name: batting_avg\n    expr: SUM(h) / NULLIF(SUM(ab), 0)\n    display_name: \"Batting Average\"\n    synonyms: [\"AVG\", \"BA\"]\n    comment: \"Hits divided by at bats. Never average player averages: always divide summed hits by summed at bats.\"\n  - name: on_base_pct\n    expr: (COALESCE(SUM(h), 0) + COALESCE(SUM(bb), 0) + COALESCE(SUM(hbp), 0)) / NULLIF(COALESCE(SUM(ab), 0) + COALESCE(SUM(bb), 0) + COALESCE(SUM(hbp), 0) + COALESCE(SUM(sf), 0), 0)\n    display_name: \"On-Base Percentage\"\n    synonyms: [\"OBP\"]\n  - name: slugging_pct\n    expr: SUM(total_bases) / NULLIF(SUM(ab), 0)\n    display_name: \"Slugging Percentage\"\n    synonyms: [\"SLG\"]\n  - name: ops\n    expr: MEASURE(on_base_pct) + MEASURE(slugging_pct)\n    display_name: \"OPS\"\n    synonyms: [\"on-base plus slugging\"]\n    comment: \"Composed measure: built from two earlier measures with MEASURE(). Change OBP once, OPS follows.\"\n  - name: isolated_power\n    expr: MEASURE(slugging_pct) - MEASURE(batting_avg)\n    display_name: \"Isolated Power\"\n    synonyms: [\"ISO\"]\n  - name: home_run_rate\n    expr: SUM(hr) * 1.0 / NULLIF(SUM(plate_appearances), 0)\n    display_name: \"Home Run Rate\"\n  - name: strikeout_rate\n    expr: SUM(so) * 1.0 / NULLIF(SUM(plate_appearances), 0)\n    display_name: \"Strikeout Rate\"\n    synonyms: [\"K%\"]\n  - name: walk_rate\n    expr: SUM(bb) * 1.0 / NULLIF(SUM(plate_appearances), 0)\n    display_name: \"Walk Rate\"\n    synonyms: [\"BB%\"]\n  - name: stolen_base_success_rate\n    expr: SUM(sb) * 1.0 / NULLIF(SUM(sb) + SUM(cs), 0)\n    display_name: \"Stolen Base Success Rate\"\n  - name: batters\n    expr: COUNT(DISTINCT source.player_key)\n    display_name: \"Distinct Batters\"\n    comment: \"Non-additive: distinct counts cannot be summed across groups. The metric view handles that for you.\"\n  - name: home_runs_regular_stints\n    expr: SUM(hr) FILTER (WHERE ab >= 400)\n    display_name: \"Home Runs (400+ AB stints)\"\n    comment: \"Filtered measure example: only rows with at least 400 at bats.\"\n  - name: cumulative_home_runs\n    expr: SUM(hr)\n    display_name: \"Cumulative Home Runs\"\n    comment: \"Window measure: running total ordered by season. Group by season to see the curve.\"\n    window:\n      - order: season\n        range: cumulative\n$$;\n",
+  "20_mv_pitching.sql": "CREATE OR REPLACE VIEW {{catalog}}.semantic.mv_pitching\nWITH METRICS\nLANGUAGE YAML\nAS $$\nversion: 1.1\ncomment: \"Pitching metrics. Source grain is player-season-stint. innings = ipouts / 3, so every rate uses outs, not decimal innings.\"\nsource: {{catalog}}.gold.fact_pitching_season\n\njoins:\n  - name: player\n    source: {{catalog}}.gold.dim_player\n    'on': source.player_key = player.player_key\n    rely:\n      at_most_one_match: true\n  - name: team\n    source: {{catalog}}.gold.dim_team_season\n    'on': source.team_season_key = team.team_season_key\n    rely:\n      at_most_one_match: true\n  - name: calendar\n    source: {{catalog}}.gold.dim_season\n    'on': source.season = calendar.season\n    rely:\n      at_most_one_match: true\n\nfields:\n  - name: season\n    expr: source.season\n    display_name: \"Season\"\n    synonyms: [\"year\"]\n  - name: decade\n    expr: calendar.decade\n    display_name: \"Decade\"\n  - name: baseball_era\n    expr: calendar.era\n    display_name: \"Baseball Era\"\n  - name: player_name\n    expr: player.full_name\n    display_name: \"Pitcher\"\n    synonyms: [\"player\", \"name\"]\n  - name: throws\n    expr: player.throws\n    display_name: \"Throws\"\n  - name: team_name\n    expr: team.team_name\n    display_name: \"Team\"\n  - name: franchise\n    expr: team.franchise_name\n    display_name: \"Franchise\"\n  - name: league\n    expr: team.league_id\n    display_name: \"League\"\n\nmeasures:\n  - name: games\n    expr: SUM(g)\n    display_name: \"Games\"\n  - name: games_started\n    expr: SUM(gs)\n    display_name: \"Games Started\"\n  - name: wins\n    expr: SUM(w)\n    display_name: \"Wins\"\n  - name: losses\n    expr: SUM(l)\n    display_name: \"Losses\"\n  - name: saves\n    expr: SUM(sv)\n    display_name: \"Saves\"\n  - name: complete_games\n    expr: SUM(cg)\n    display_name: \"Complete Games\"\n  - name: shutouts\n    expr: SUM(sho)\n    display_name: \"Shutouts\"\n  - name: strikeouts\n    expr: SUM(so)\n    display_name: \"Strikeouts\"\n    synonyms: [\"K\", \"SO\"]\n  - name: walks\n    expr: SUM(bb)\n    display_name: \"Walks\"\n    synonyms: [\"BB\"]\n  - name: hits_allowed\n    expr: SUM(h)\n    display_name: \"Hits Allowed\"\n  - name: home_runs_allowed\n    expr: SUM(hr)\n    display_name: \"Home Runs Allowed\"\n  - name: earned_runs\n    expr: SUM(er)\n    display_name: \"Earned Runs\"\n  - name: innings_pitched\n    expr: SUM(ipouts) / 3.0\n    display_name: \"Innings Pitched\"\n    synonyms: [\"IP\"]\n  - name: era\n    expr: 27.0 * SUM(er) / NULLIF(SUM(ipouts), 0)\n    display_name: \"ERA\"\n    synonyms: [\"earned run average\"]\n    comment: \"Earned runs per nine innings = 27 x ER / outs recorded.\"\n  - name: whip\n    expr: 3.0 * (SUM(h) + SUM(bb)) / NULLIF(SUM(ipouts), 0)\n    display_name: \"WHIP\"\n    synonyms: [\"walks plus hits per inning\"]\n  - name: strikeouts_per_9\n    expr: 27.0 * SUM(so) / NULLIF(SUM(ipouts), 0)\n    display_name: \"Strikeouts per 9\"\n    synonyms: [\"K/9\"]\n  - name: walks_per_9\n    expr: 27.0 * SUM(bb) / NULLIF(SUM(ipouts), 0)\n    display_name: \"Walks per 9\"\n    synonyms: [\"BB/9\"]\n  - name: home_runs_per_9\n    expr: 27.0 * SUM(hr) / NULLIF(SUM(ipouts), 0)\n    display_name: \"Home Runs per 9\"\n    synonyms: [\"HR/9\"]\n  - name: strikeout_to_walk_ratio\n    expr: SUM(so) * 1.0 / NULLIF(SUM(bb), 0)\n    display_name: \"Strikeout-to-Walk Ratio\"\n    synonyms: [\"K/BB\"]\n  - name: win_pct\n    expr: SUM(w) * 1.0 / NULLIF(SUM(w) + SUM(l), 0)\n    display_name: \"Win Percentage\"\n  - name: pitchers\n    expr: COUNT(DISTINCT source.player_key)\n    display_name: \"Distinct Pitchers\"\n$$;\n",
+  "30_mv_team_season.sql": "CREATE OR REPLACE VIEW {{catalog}}.semantic.mv_team_season\nWITH METRICS\nLANGUAGE YAML\nAS $$\nversion: 1.1\ncomment: \"Team-season results, run environment, attendance and payroll. Source grain is team-season. Payroll exists from 1985 only.\"\nsource: {{catalog}}.gold.fact_team_season\n\njoins:\n  - name: team\n    source: {{catalog}}.gold.dim_team_season\n    'on': source.team_season_key = team.team_season_key\n    rely:\n      at_most_one_match: true\n  - name: calendar\n    source: {{catalog}}.gold.dim_season\n    'on': source.season = calendar.season\n    rely:\n      at_most_one_match: true\n\nfields:\n  - name: season\n    expr: source.season\n    display_name: \"Season\"\n    synonyms: [\"year\"]\n  - name: decade\n    expr: calendar.decade\n    display_name: \"Decade\"\n  - name: baseball_era\n    expr: calendar.era\n    display_name: \"Baseball Era\"\n  - name: team_name\n    expr: team.team_name\n    display_name: \"Team\"\n  - name: franchise\n    expr: team.franchise_name\n    display_name: \"Franchise\"\n  - name: league\n    expr: team.league_id\n    display_name: \"League\"\n  - name: division\n    expr: team.division_id\n    display_name: \"Division\"\n  - name: ballpark\n    expr: team.park_name\n    display_name: \"Ballpark\"\n  - name: won_world_series\n    expr: team.won_world_series\n    display_name: \"Won World Series\"\n    synonyms: [\"champion\"]\n\nmeasures:\n  - name: team_seasons\n    expr: COUNT(1)\n    display_name: \"Team Seasons\"\n  - name: games\n    expr: SUM(g)\n    display_name: \"Games\"\n  - name: wins\n    expr: SUM(w)\n    display_name: \"Wins\"\n    synonyms: [\"W\"]\n  - name: losses\n    expr: SUM(l)\n    display_name: \"Losses\"\n    synonyms: [\"L\"]\n  - name: win_pct\n    expr: SUM(w) * 1.0 / NULLIF(SUM(w) + SUM(l), 0)\n    display_name: \"Win Percentage\"\n    synonyms: [\"winning percentage\", \"WPCT\"]\n  - name: runs_scored\n    expr: SUM(r)\n    display_name: \"Runs Scored\"\n  - name: runs_allowed\n    expr: SUM(ra)\n    display_name: \"Runs Allowed\"\n  - name: run_differential\n    expr: SUM(r) - SUM(ra)\n    display_name: \"Run Differential\"\n    synonyms: [\"run diff\"]\n  - name: pythagorean_win_pct\n    expr: POWER(SUM(r), 1.83) / NULLIF(POWER(SUM(r), 1.83) + POWER(SUM(ra), 1.83), 0)\n    display_name: \"Pythagorean Win Percentage\"\n    synonyms: [\"expected win pct\"]\n    comment: \"Expected win percentage from runs scored and allowed (exponent 1.83).\"\n  - name: wins_over_expected\n    expr: MEASURE(win_pct) - MEASURE(pythagorean_win_pct)\n    display_name: \"Win Pct Over Expected\"\n    synonyms: [\"luck\"]\n  - name: attendance\n    expr: SUM(attendance)\n    display_name: \"Attendance\"\n  - name: avg_attendance_per_home_game\n    expr: SUM(attendance) / NULLIF(SUM(g_home) FILTER (WHERE attendance IS NOT NULL), 0)\n    display_name: \"Average Attendance per Home Game\"\n    comment: \"Only counts home games where attendance was recorded, so missing data does not drag the average down.\"\n  - name: payroll\n    expr: SUM(payroll_usd)\n    display_name: \"Payroll (USD)\"\n    comment: \"Sum of player salaries. NULL before 1985.\"\n  - name: cost_per_win\n    expr: SUM(payroll_usd) / NULLIF(SUM(w) FILTER (WHERE payroll_usd IS NOT NULL), 0)\n    display_name: \"Payroll per Win (USD)\"\n    comment: \"Wins in the denominator are restricted to seasons that have payroll, otherwise pre-1985 wins would flatter the ratio.\"\n$$;\n"
+ }
+}
