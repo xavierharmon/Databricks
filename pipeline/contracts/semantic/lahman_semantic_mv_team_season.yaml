@@ -1,0 +1,307 @@
+# Semantic contract: mv_team_season (Lahman MLB).
+# Golden values were computed from the raw Lahman CSVs, independent of the pipeline.
+apiVersion: v3.1.0
+kind: DataContract
+id: lahman.semantic.mv_team_season
+name: mv_team_season (semantic)
+version: 1.0.0
+status: active
+domain: baseball_operations
+dataProduct: lahman
+description:
+  purpose: Governed team-season metrics (results, run environment, attendance, payroll) for MLB 1871-2020 (Lahman).
+  limitations: Payroll exists from 1985 only and is NULL before. Cost per win only counts seasons with payroll.
+  usage: SELECT dim, MEASURE(measure) FROM semantic.mv_team_season GROUP BY dim.
+tags:
+- lahman
+- semantic
+customProperties:
+- property: layer
+  value: semantic
+- property: owner
+  value: Analytics Engineering
+- property: strictTypes
+  value: false
+slaProperties:
+- property: frequency
+  value: 1
+  unit: d
+  element: mv_team_season
+schema:
+- name: mv_team_season
+  physicalName: semantic.mv_team_season
+  logicalType: object
+  physicalType: view
+  description: Governed team-season metrics (results, run environment, attendance, payroll) for MLB 1871-2020 (Lahman).
+  customProperties:
+  - property: definition
+    value: sql/metric_views/30_mv_team_season.sql
+  - property: dependsOn
+    value:
+    - gold.fact_team_season
+    - gold.dim_team_season
+    - gold.dim_season
+  - property: consumers
+    value:
+    - bi_dashboards
+    - genie_space_mlb
+  properties:
+  - name: season
+    logicalType: integer
+    required: false
+    description: Season
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 18c81f0acf57
+  - name: decade
+    logicalType: integer
+    required: false
+    description: Decade
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 4854e3a4b48a
+  - name: baseball_era
+    logicalType: string
+    required: false
+    description: Baseball Era
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 87a969fc3eef
+  - name: team_name
+    logicalType: string
+    required: false
+    description: Team
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: a6a8b4c76709
+  - name: franchise
+    logicalType: string
+    required: false
+    description: Franchise
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: a0408473bec7
+  - name: league
+    logicalType: string
+    required: false
+    description: League
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 5a8a79f3c146
+  - name: division
+    logicalType: string
+    required: false
+    description: Division
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 9d1afb56297f
+  - name: ballpark
+    logicalType: string
+    required: false
+    description: Ballpark
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 99484b3203d3
+  - name: won_world_series
+    logicalType: boolean
+    required: false
+    description: Won World Series
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 05c67ee92ab2
+  - name: team_seasons
+    logicalType: integer
+    required: false
+    description: Team Seasons
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 5c14c3cbd2d3
+  - name: games
+    logicalType: integer
+    required: false
+    description: Games
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 2c693824fe80
+  - name: wins
+    logicalType: integer
+    required: false
+    description: Wins
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 30339175bb51
+  - name: losses
+    logicalType: integer
+    required: false
+    description: Losses
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: f6c15137548e
+  - name: win_pct
+    logicalType: number
+    required: false
+    description: Win Percentage
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 5178c874383e
+  - name: runs_scored
+    logicalType: integer
+    required: false
+    description: Runs Scored
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: b88fa486fc3e
+  - name: runs_allowed
+    logicalType: integer
+    required: false
+    description: Runs Allowed
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: f9a948a63f02
+  - name: run_differential
+    logicalType: integer
+    required: false
+    description: Run Differential
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 7266756bf1a3
+  - name: pythagorean_win_pct
+    logicalType: number
+    required: false
+    description: Expected win percentage from runs scored and allowed (exponent 1.83).
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 6b36fa6c9491
+  - name: wins_over_expected
+    logicalType: number
+    required: false
+    description: Win Pct Over Expected
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 21d7e67f740d
+  - name: attendance
+    logicalType: integer
+    required: false
+    description: Attendance
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 68ed0260374b
+  - name: avg_attendance_per_home_game
+    logicalType: number
+    required: false
+    description: Only counts home games where attendance was recorded, so missing data does not drag the average
+      down.
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 4e13dece1f0b
+  - name: payroll
+    logicalType: integer
+    required: false
+    description: Sum of player salaries. NULL before 1985.
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: e14b9921dc17
+  - name: cost_per_win
+    logicalType: number
+    required: false
+    description: Wins in the denominator are restricted to seasons that have payroll, otherwise pre-1985 wins would
+      flatter the ratio.
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 9874951be163
+  quality:
+  - name: SEM-LT-001
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: The 2001 Seattle Mariners show the record 116 wins and a +300 run differential.
+    implementation:
+      test_type: expect
+      dimensions:
+      - team_name
+      - season
+      measures:
+      - wins
+      - run_differential
+      where: team_name = 'Seattle Mariners' AND season = 2001
+      expect:
+      - team_name: Seattle Mariners
+        season: 2001
+        wins: 116
+        run_differential: 300
+      tolerance: 0
+  - name: SEM-LT-002
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: Wins by season equal the sum from the gold fact.
+    implementation:
+      test_type: reconcile
+      dimensions:
+      - season
+      measures:
+      - wins
+      tolerance: 0
+      compare_sql: SELECT season, SUM(w) AS wins FROM gold.fact_team_season GROUP BY season
+  - name: SEM-LT-003
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: Win percentage is between 0 and 1.
+    implementation:
+      test_type: bounds
+      dimensions:
+      - season
+      bounds:
+        win_pct:
+        - 0
+        - 1

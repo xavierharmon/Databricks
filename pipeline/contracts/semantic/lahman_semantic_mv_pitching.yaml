@@ -1,0 +1,356 @@
+# Semantic contract: mv_pitching (Lahman MLB).
+# Golden values were computed from the raw Lahman CSVs, independent of the pipeline.
+apiVersion: v3.1.0
+kind: DataContract
+id: lahman.semantic.mv_pitching
+name: mv_pitching (semantic)
+version: 1.0.0
+status: active
+domain: baseball_operations
+dataProduct: lahman
+description:
+  purpose: Governed pitching metrics for MLB 1871-2020 (Lahman). Rates use outs (ipouts / 3), not decimal innings.
+  limitations: Older seasons have missing strikeout and walk detail. Distinct counts are not additive.
+  usage: SELECT dim, MEASURE(measure) FROM semantic.mv_pitching GROUP BY dim.
+tags:
+- lahman
+- semantic
+customProperties:
+- property: layer
+  value: semantic
+- property: owner
+  value: Analytics Engineering
+- property: strictTypes
+  value: false
+slaProperties:
+- property: frequency
+  value: 1
+  unit: d
+  element: mv_pitching
+schema:
+- name: mv_pitching
+  physicalName: semantic.mv_pitching
+  logicalType: object
+  physicalType: view
+  description: Governed pitching metrics for MLB 1871-2020 (Lahman). Rates use outs (ipouts / 3), not decimal innings.
+  customProperties:
+  - property: definition
+    value: sql/metric_views/20_mv_pitching.sql
+  - property: dependsOn
+    value:
+    - gold.fact_pitching_season
+    - gold.dim_player
+    - gold.dim_team_season
+    - gold.dim_season
+  - property: consumers
+    value:
+    - bi_dashboards
+    - genie_space_mlb
+  properties:
+  - name: season
+    logicalType: integer
+    required: false
+    description: Season
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 18c81f0acf57
+  - name: decade
+    logicalType: integer
+    required: false
+    description: Decade
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 4854e3a4b48a
+  - name: baseball_era
+    logicalType: string
+    required: false
+    description: Baseball Era
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 87a969fc3eef
+  - name: player_name
+    logicalType: string
+    required: false
+    description: Pitcher
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: d28d7eea452f
+  - name: throws
+    logicalType: string
+    required: false
+    description: Throws
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: b8d3e296ee47
+  - name: team_name
+    logicalType: string
+    required: false
+    description: Team
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: a6a8b4c76709
+  - name: franchise
+    logicalType: string
+    required: false
+    description: Franchise
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: a0408473bec7
+  - name: league
+    logicalType: string
+    required: false
+    description: League
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 5a8a79f3c146
+  - name: games
+    logicalType: integer
+    required: false
+    description: Games
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 2c693824fe80
+  - name: games_started
+    logicalType: integer
+    required: false
+    description: Games Started
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 4bdc328b400f
+  - name: wins
+    logicalType: integer
+    required: false
+    description: Wins
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 30339175bb51
+  - name: losses
+    logicalType: integer
+    required: false
+    description: Losses
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: f6c15137548e
+  - name: saves
+    logicalType: integer
+    required: false
+    description: Saves
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 2635cd36f639
+  - name: complete_games
+    logicalType: integer
+    required: false
+    description: Complete Games
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: ddae53bfcba2
+  - name: shutouts
+    logicalType: integer
+    required: false
+    description: Shutouts
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: a9d84c979c60
+  - name: strikeouts
+    logicalType: integer
+    required: false
+    description: Strikeouts
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: b8058a5fd825
+  - name: walks
+    logicalType: integer
+    required: false
+    description: Walks
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 49499ba878d5
+  - name: hits_allowed
+    logicalType: integer
+    required: false
+    description: Hits Allowed
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: c37ec28232c8
+  - name: home_runs_allowed
+    logicalType: integer
+    required: false
+    description: Home Runs Allowed
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 5c00cce45643
+  - name: earned_runs
+    logicalType: integer
+    required: false
+    description: Earned Runs
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 891824f189c3
+  - name: innings_pitched
+    logicalType: number
+    required: false
+    description: Innings Pitched
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: c18373fbce26
+  - name: era
+    logicalType: number
+    required: false
+    description: Earned runs per nine innings = 27 x ER / outs recorded.
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: c624911c4ccc
+  - name: whip
+    logicalType: number
+    required: false
+    description: WHIP
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 9dd00f25c5ad
+  - name: strikeouts_per_9
+    logicalType: number
+    required: false
+    description: Strikeouts per 9
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 0f579d443eeb
+  - name: walks_per_9
+    logicalType: number
+    required: false
+    description: Walks per 9
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 24d7ddbabf3d
+  - name: home_runs_per_9
+    logicalType: number
+    required: false
+    description: Home Runs per 9
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: d4219e3b6d12
+  - name: strikeout_to_walk_ratio
+    logicalType: number
+    required: false
+    description: Strikeout-to-Walk Ratio
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 263d76edffff
+  - name: win_pct
+    logicalType: number
+    required: false
+    description: Win Percentage
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 5178c874383e
+  - name: pitchers
+    logicalType: integer
+    required: false
+    description: Distinct Pitchers
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 7a9129d1f32e
+  quality:
+  - name: SEM-LP-001
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: 2001 league-wide strikeouts match the raw Lahman file.
+    implementation:
+      test_type: expect
+      dimensions:
+      - season
+      measures:
+      - strikeouts
+      where: season = 2001
+      expect:
+      - season: 2001
+        strikeouts: 32404
+      tolerance: 0
+  - name: SEM-LP-002
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: Strikeouts by season equal the sum from the gold fact.
+    implementation:
+      test_type: reconcile
+      dimensions:
+      - season
+      measures:
+      - strikeouts
+      tolerance: 0
+      compare_sql: SELECT season, SUM(so) AS strikeouts FROM gold.fact_pitching_season GROUP BY season
+  - name: SEM-LP-003
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: Win percentage is between 0 and 1 for every season.
+    implementation:
+      test_type: bounds
+      dimensions:
+      - season
+      bounds:
+        win_pct:
+        - 0
+        - 1

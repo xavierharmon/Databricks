@@ -1,0 +1,160 @@
+# Gold contract: dim_player. Violating any rule stops the job (action: fail).
+apiVersion: v3.1.0
+kind: DataContract
+id: fbl.gold.dim_player
+name: FBL dim_player (gold)
+version: 1.0.0
+status: active
+domain: baseball_operations
+dataProduct: fbl
+description:
+  purpose: 'Player dimension: one row per player.'
+  limitations: 'Gold never contains NULLs. Optional text is labeled ''None''. Numeric facts are never defaulted:
+    bad rows are rejected in silver.'
+  usage: Safe for analysts and the semantic layer. Prefer the metric views for ratios.
+tags:
+- fbl
+- gold
+customProperties:
+- property: layer
+  value: gold
+- property: owner
+  value: Data Engineering
+- property: dependsOn
+  value: fbl.silver.player
+- property: consumers
+  value:
+  - fbl.semantic.mv_fbl_batting
+  - fbl.semantic.mv_fbl_roster
+slaProperties:
+- property: freshness
+  value: 24
+  unit: h
+  element: dim_player
+- property: frequency
+  value: 1
+  unit: d
+  element: dim_player
+schema:
+- name: dim_player
+  physicalName: gold.fbl_dim_player
+  logicalType: object
+  physicalType: table
+  description: 'Player dimension: one row per player.'
+  customProperties:
+  - property: entity
+    value: dim_player
+  - property: reconcilesTo
+    value: silver.fbl_player
+  properties:
+  - name: player_id
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Player identifier, e.g. P001. Primary key.
+    primaryKey: true
+    primaryKeyPosition: 1
+  - name: first_name
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Given name.
+  - name: last_name
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Family name.
+  - name: full_name
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: first_name + last_name
+  - name: birth_date
+    logicalType: date
+    physicalType: DATE
+    required: true
+    description: Date of birth. Personal data. Player must be at least 16.
+    classification: personal
+  - name: bats
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: 'Batting side: L, R or B (switch).'
+  - name: throws
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: 'Throwing hand: L or R.'
+  - name: team_id
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: Team the player belongs to.
+    relationships:
+    - to: dim_team.team_id
+      type: foreignKey
+  - name: position
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: 'Position code: P, C, 1B, 2B, 3B, SS, LF, CF, RF or DH.'
+  - name: height_in
+    logicalType: integer
+    physicalType: INT
+    required: true
+    description: Height in inches (60 to 84).
+  - name: weight_lb
+    logicalType: integer
+    physicalType: INT
+    required: true
+    description: Weight in pounds (120 to 350 expected).
+  - name: nickname
+    logicalType: string
+    physicalType: STRING
+    required: true
+    description: 'Gold guarantee: never NULL; the label ''None'' means not provided.'
+  quality:
+  - metric: rowCount
+    mustBeGreaterThan: 0
+    type: library
+    dimension: completeness
+    severity: error
+    description: Gold table must not be empty.
+  - name: GLD-002
+    type: custom
+    engine: fbl-dq-engine
+    dimension: completeness
+    severity: error
+    description: 'Gold guarantee: no NULL in any dim_player column'
+    implementation:
+      rule_type: no_nulls
+      columns: '*'
+      expression: ''
+      action: fail
+      owner: Data Engineering
+  - name: GLD-005
+    type: custom
+    engine: fbl-dq-engine
+    dimension: uniqueness
+    severity: error
+    description: 'dim_player grain: one row per player_id'
+    implementation:
+      rule_type: unique
+      columns:
+      - player_id
+      expression: ''
+      action: fail
+      owner: Data Engineering
+  - name: GLD-009
+    type: custom
+    engine: fbl-dq-engine
+    dimension: consistency
+    severity: error
+    description: Every player must belong to a team in dim_team
+    implementation:
+      rule_type: referential
+      columns:
+      - team_id
+      expression: gold.fbl_dim_team.team_id
+      action: fail
+      owner: Data Engineering

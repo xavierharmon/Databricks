@@ -1,0 +1,408 @@
+# Semantic contract: mv_batting (Lahman MLB).
+# Golden values were computed from the raw Lahman CSVs, independent of the pipeline.
+apiVersion: v3.1.0
+kind: DataContract
+id: lahman.semantic.mv_batting
+name: mv_batting (semantic)
+version: 1.0.0
+status: active
+domain: baseball_operations
+dataProduct: lahman
+description:
+  purpose: Governed batting metrics for MLB 1871-2020 (Lahman). Ratios are computed from summed components.
+  limitations: NULL means not recorded (e.g. no sacrifice flies before 1954), not zero. Distinct counts are not
+    additive.
+  usage: SELECT dim, MEASURE(measure) FROM semantic.mv_batting GROUP BY dim.
+tags:
+- lahman
+- semantic
+customProperties:
+- property: layer
+  value: semantic
+- property: owner
+  value: Analytics Engineering
+- property: strictTypes
+  value: false
+slaProperties:
+- property: frequency
+  value: 1
+  unit: d
+  element: mv_batting
+schema:
+- name: mv_batting
+  physicalName: semantic.mv_batting
+  logicalType: object
+  physicalType: view
+  description: Governed batting metrics for MLB 1871-2020 (Lahman). Ratios are computed from summed components.
+  customProperties:
+  - property: definition
+    value: sql/metric_views/10_mv_batting.sql
+  - property: dependsOn
+    value:
+    - gold.fact_batting_season
+    - gold.dim_player
+    - gold.dim_team_season
+    - gold.dim_season
+  - property: consumers
+    value:
+    - bi_dashboards
+    - genie_space_mlb
+  properties:
+  - name: season
+    logicalType: integer
+    required: false
+    description: Season
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 18c81f0acf57
+  - name: decade
+    logicalType: integer
+    required: false
+    description: Decade
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 4854e3a4b48a
+  - name: baseball_era
+    logicalType: string
+    required: false
+    description: Baseball Era
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 87a969fc3eef
+  - name: player_name
+    logicalType: string
+    required: false
+    description: Player
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: d28d7eea452f
+  - name: batting_hand
+    logicalType: string
+    required: false
+    description: Bats
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 42a681b4211a
+  - name: birth_country
+    logicalType: string
+    required: false
+    description: Birth Country
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 9b4ceee9c61a
+  - name: team_name
+    logicalType: string
+    required: false
+    description: Team
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: a6a8b4c76709
+  - name: franchise
+    logicalType: string
+    required: false
+    description: Franchise
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: a0408473bec7
+  - name: league
+    logicalType: string
+    required: false
+    description: League
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 5a8a79f3c146
+  - name: division
+    logicalType: string
+    required: false
+    description: Division
+    customProperties:
+    - property: kind
+      value: field
+    - property: exprHash
+      value: 9d1afb56297f
+  - name: games
+    logicalType: integer
+    required: false
+    description: Games
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 2c693824fe80
+  - name: at_bats
+    logicalType: integer
+    required: false
+    description: At Bats
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 049e5740b70b
+  - name: plate_appearances
+    logicalType: integer
+    required: false
+    description: Plate Appearances
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 254ccffd6043
+  - name: runs
+    logicalType: integer
+    required: false
+    description: Runs
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: b88fa486fc3e
+  - name: hits
+    logicalType: integer
+    required: false
+    description: Hits
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: c37ec28232c8
+  - name: home_runs
+    logicalType: integer
+    required: false
+    description: Home Runs
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 5c00cce45643
+  - name: rbi
+    logicalType: integer
+    required: false
+    description: RBI
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 7931f243ed37
+  - name: stolen_bases
+    logicalType: integer
+    required: false
+    description: Stolen Bases
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: d86519884e33
+  - name: walks
+    logicalType: integer
+    required: false
+    description: Walks
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 49499ba878d5
+  - name: strikeouts
+    logicalType: integer
+    required: false
+    description: Strikeouts
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: b8058a5fd825
+  - name: batting_avg
+    logicalType: number
+    required: false
+    description: 'Hits divided by at bats. Never average player averages: always divide summed hits by summed at
+      bats.'
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: d6c4f4e83168
+  - name: on_base_pct
+    logicalType: number
+    required: false
+    description: On-Base Percentage
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 04ebab5c3420
+  - name: slugging_pct
+    logicalType: number
+    required: false
+    description: Slugging Percentage
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: e895bedadcdb
+  - name: ops
+    logicalType: number
+    required: false
+    description: 'Composed measure: built from two earlier measures with MEASURE(). Change OBP once, OPS follows.'
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 05d5ae136aba
+  - name: isolated_power
+    logicalType: number
+    required: false
+    description: Isolated Power
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 29c731829bbf
+  - name: home_run_rate
+    logicalType: number
+    required: false
+    description: Home Run Rate
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 578ea68db733
+  - name: strikeout_rate
+    logicalType: number
+    required: false
+    description: Strikeout Rate
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: c829739abd75
+  - name: walk_rate
+    logicalType: number
+    required: false
+    description: Walk Rate
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 8706e47a2197
+  - name: stolen_base_success_rate
+    logicalType: number
+    required: false
+    description: Stolen Base Success Rate
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 4244c4e7ed04
+  - name: batters
+    logicalType: integer
+    required: false
+    description: 'Non-additive: distinct counts cannot be summed across groups. The metric view handles that for
+      you.'
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 7a9129d1f32e
+  - name: home_runs_regular_stints
+    logicalType: integer
+    required: false
+    description: 'Filtered measure example: only rows with at least 400 at bats.'
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: bcaf74032868
+  - name: cumulative_home_runs
+    logicalType: integer
+    required: false
+    description: 'Window measure: running total ordered by season. Group by season to see the curve.'
+    customProperties:
+    - property: kind
+      value: measure
+    - property: exprHash
+      value: 5c00cce45643
+  quality:
+  - name: SEM-LB-001
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: Bonds 2001 returns the record-book home runs and batting average.
+    implementation:
+      test_type: expect
+      dimensions:
+      - player_name
+      - season
+      measures:
+      - home_runs
+      - batting_avg
+      where: player_name = 'Barry Bonds' AND season = 2001
+      expect:
+      - player_name: Barry Bonds
+        season: 2001
+        home_runs: 73
+        batting_avg: 0.3277
+      tolerance: 0.0005
+  - name: SEM-LB-002
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: Home runs by season equal the sum from the gold fact.
+    implementation:
+      test_type: reconcile
+      dimensions:
+      - season
+      measures:
+      - home_runs
+      tolerance: 0
+      compare_sql: SELECT season, SUM(hr) AS home_runs FROM gold.fact_batting_season GROUP BY season
+  - name: SEM-LB-003
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: 2001 league-wide home runs match the raw Lahman file.
+    implementation:
+      test_type: expect
+      dimensions:
+      - season
+      measures:
+      - home_runs
+      where: season = 2001
+      expect:
+      - season: 2001
+        home_runs: 5458
+      tolerance: 0
+  - name: SEM-LB-004
+    type: custom
+    engine: fbl-semantic-checks
+    dimension: accuracy
+    severity: error
+    description: Batting average is between 0 and 1 for every season and league.
+    implementation:
+      test_type: bounds
+      dimensions:
+      - season
+      - league
+      bounds:
+        batting_avg:
+        - 0
+        - 1
