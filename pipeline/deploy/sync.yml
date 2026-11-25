@@ -50,6 +50,22 @@ sync:
     src: app
     dst: app
     prune: true
+  - name: tools
+    src: tools
+    dst: tools
+    prune: true
+  - name: src
+    src: src
+    dst: src
+    prune: true
+  - name: sql
+    src: sql
+    dst: sql
+    prune: true
+  - name: data
+    src: data
+    dst: data
+    prune: true
 
 # Set prune: true on an entry to DELETE files in its destination that no longer exist in the repository.
 # Leave it off for any folder that also holds files you put there by hand.
