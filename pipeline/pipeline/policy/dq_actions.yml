@@ -1,0 +1,23 @@
+# Per-environment overrides of what a data-quality rule DOES when it is violated.
+#
+# The contract still owns the rule. This file only changes the ACTION, in named environments, with a reason and an approver.
+# Rules you can override: silver rules whose contract action is warn, quarantine or fail.
+# Strictness: warn < quarantine < fail. Going DOWN that ladder lets more bad data through: it is a downgrade and a BREAKING change.
+#
+# Rules of the road (enforced by `python tools/contract_tool.py lint` and again by the runner):
+#   * every override needs `reason` and `approved_by`
+#   * a downgrade also needs `expires` (YYYY-MM-DD). After that date the runner ignores it and uses the contract's action
+#   * a breaking change needs a MAJOR bump of `version` below; any change at all needs the version to change
+#   * the runner applies overrides only when started with --env dev|staging|prod. No --env means no overrides.
+#
+# Example (commented out on purpose: PLR-008 stays a warning for now, so the answer key does not move):
+#
+#   - rule: PLR-008
+#     env: [dev]
+#     action: quarantine
+#     reason: "Try quarantining the 900 lb player to see the answer key change"
+#     approved_by: xavier
+#     ticket: ""            # optional
+#
+version: 1.0.0
+overrides: []

@@ -1,0 +1,31 @@
+# INERT EXAMPLE. Lives in docs/ so GitHub does not run it.
+# To activate later: copy to .github/workflows/ci.yml.
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main, platform-v3]
+jobs:
+  fast:                       # tier A: seconds
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: pipeline } }
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }      # full history so `diff --git-ref origin/main` works
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install pytest pyyaml
+      - run: python tools/contract_tool.py lint
+      - run: python tools/catalog_tool.py lint   # will fail until tix semantic contracts exist
+      - run: pytest -m "not spark and not databricks"
+  spark:                      # tier B: minutes
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: pipeline } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -r requirements-dev.txt
+      - run: pytest -m spark
