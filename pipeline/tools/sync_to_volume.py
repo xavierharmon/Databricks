@@ -135,7 +135,13 @@ def preflight_lint(items):
                 pass
     if not docs:
         return [], 0
-    return [x for x in lint(ContractSet(docs), parsed) if x[0] == "error"], len(docs)
+    errs = [x for x in lint(ContractSet(docs), parsed) if x[0] == "error"]
+    from lib import policy as P                      # the same check the runner repeats at setup
+    from lib.contracts import compile_all_rules
+    for f, dst, entry in items:
+        if entry.get("name", "").startswith("policy") and f.suffix in (".yml", ".yaml"):
+            errs += [x for x in P.validate(P.load_policy(str(f), parse_yaml), compile_all_rules(ContractSet(docs))) if x[0] == "error"]
+    return errs, len(docs)
 
 
 def build_zip_file(workdir):

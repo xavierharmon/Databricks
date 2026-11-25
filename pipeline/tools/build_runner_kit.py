@@ -35,7 +35,7 @@ def build_zip(dest: Path):
                 z.write(f, f"{pkg}/{f.relative_to(src)}")
         notebook_route_only = {"fbl_pipeline.py", "sql_runner.py"}     # used by the older notebook route, not by the runner
         z.writestr("toolkit/__init__.py", "")
-        for name in ("generate_tix_data.py", "check_tix_data.py", "identity_reference.py", "catalog_tool.py", "stage_landing.py", "train_models.py"):
+        for name in ("generate_tix_data.py", "check_tix_data.py", "identity_reference.py", "catalog_tool.py", "stage_landing.py", "train_models.py", "run_tests.py"):
             z.write(ROOT / "tools" / name, f"toolkit/{name}")      # the helper tools, runnable as Job tasks through run_tool.py
         for f in sorted((ROOT / "src" / "lib").glob("*.py")):          # every other module in lib: a new helper needs no list edit
             if f.name not in notebook_route_only:

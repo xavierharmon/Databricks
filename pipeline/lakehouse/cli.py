@@ -19,4 +19,8 @@ def add_common_args(p: argparse.ArgumentParser) -> argparse.ArgumentParser:
     p.add_argument("--fail-on-rejects", default="true", choices=["true", "false"],
                    help="true: end the run in failure when rows were rejected or a contract is broken")
     p.add_argument("--local-mode", action="store_true", help="tests on open-source Spark only")
+    p.add_argument("--env", default="", choices=["", "dev", "staging", "prod"],
+                   help="which environment this run is. Data-quality action overrides in policy/dq_actions.yml apply ONLY when this is set "
+                        "(no --env = the contracts' own actions, nothing overridden)")
+    p.add_argument("--policy-file", help="override: the data-quality action policy (default <pipeline-root>/policy/dq_actions.yml)")
     return p

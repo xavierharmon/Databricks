@@ -21,6 +21,8 @@ class RunContext:
     reports_dir: str
     product: str = "fbl"
     local_mode: bool = False           # tests on open-source Spark: no USE CATALOG, no metric view creation
+    env: str = ""                      # dev | staging | prod. Empty = apply no action overrides (see lib/policy.py)
+    policy_path: str = ""              # the data-quality action policy file
     fail_on_rejects: bool = True
     spark: object = None
     contracts: object = None           # lib.contracts.ContractSet, filled by the runner
@@ -48,6 +50,8 @@ def make_context(args, spark=None) -> RunContext:
         reports_dir=f"{data}/reports",
         product=args.product,
         local_mode=args.local_mode,
+        env=args.env,
+        policy_path=args.policy_file or f"{root}/policy/dq_actions.yml",
         fail_on_rejects=(str(args.fail_on_rejects).lower() == "true"),
         spark=spark,
     )

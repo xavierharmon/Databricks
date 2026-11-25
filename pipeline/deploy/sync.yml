@@ -9,6 +9,7 @@ dest_root: /Volumes/pipeline_mlb_dev/governance/pipeline
 launchers:                 # copied to dest_root
   - run_pipeline.py
   - run_tool.py
+  - pytest.ini             # lets `run_tool.py test` run the suite inside Databricks (Tier B)
 
 zip: code/lakehouse.zip    # built from lakehouse/, src/lib/ and the tools, then copied here
 
@@ -32,6 +33,15 @@ sync:
     dst: definitions
     flatten: true            # the runner reads one flat folder, matching files by name
     kind: definitions
+  - name: policy (per-environment data-quality action overrides)
+    src: policy
+    dst: policy
+    prune: true
+  - name: tests (so the Spark tier can run inside Databricks)
+    src: tests
+    dst: tests
+    exclude: ["__pycache__", ".pytest_cache", ".spark-warehouse"]
+    prune: true
   - name: catalog (domains, pages, products)
     src: catalog
     dst: catalog

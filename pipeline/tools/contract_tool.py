@@ -27,6 +27,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from lib import contracts as C  # noqa: E402
+from lib import policy as P  # noqa: E402
 
 
 def load(dir_):
@@ -54,9 +55,34 @@ def cmd_lint(a):
     findings = C.lint(cs, parsed)
     for sev, cid, msg in findings:
         print(f"{sev.upper():5} {cid}: {msg}")
+    pfindings = P.validate(P.load_policy(a.policy, C.parse_yaml), C.compile_all_rules(cs))      # data-quality action overrides
+    for sev, ref, msg in pfindings:
+        print(f"{sev.upper():5} policy {ref}: {msg}")
+    findings = findings + pfindings
     errors = sum(1 for f in findings if f[0] == "error")
     print(f"{len(contracts)} contracts, {errors} errors, {len(findings) - errors} warnings")
     return 1 if errors else 0
+
+
+def cmd_policy_diff(a):
+    """Classify a change to policy/dq_actions.yml. A change that lets more bad data through is BREAKING and needs a MAJOR bump."""
+    _, contracts = load(a.contracts)
+    rules = C.compile_all_rules(C.ContractSet(contracts))
+    new = P.load_policy(a.policy, C.parse_yaml)
+    if a.git_ref:
+        rel = Path(a.policy).resolve().relative_to(ROOT).as_posix()
+        out = subprocess.run(["git", "show", f"{a.git_ref}:{rel}"], cwd=ROOT, capture_output=True, text=True)
+        old = P.parse_policy(out.stdout, C.parse_yaml) if out.returncode == 0 else P.empty_policy()
+    else:
+        old = P.load_policy(a.old, C.parse_yaml) if a.old else P.empty_policy()
+    changes, problems = P.classify(old, new, rules)
+    print(f"policy {old.get('version')} -> {new.get('version')}")
+    for breaking, msg in changes:
+        print(f"  {'BREAKING     ' if breaking else 'non-breaking '} {msg}")
+    for m in problems:
+        print(f"  POLICY ERROR  {m}")
+    print("policy version OK" if not problems else f"{len(problems)} problem(s): fix the version or revert the change")
+    return 1 if problems else 0
 
 
 def cmd_bundle(a):
@@ -212,14 +238,16 @@ def cmd_export_rules(a):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--contracts", default=str(ROOT / "contracts"))
+    ap.add_argument("--policy", default=str(ROOT / "policy" / "dq_actions.yml"), help="data-quality action overrides")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("lint")
     b = sub.add_parser("bundle"); b.add_argument("--out", default=str(ROOT / "contracts_bundle.json"))
     sub.add_parser("stamp")
+    pd_ = sub.add_parser("policy-diff"); pd_.add_argument("--git-ref"); pd_.add_argument("--old")
     d = sub.add_parser("diff"); d.add_argument("--git-ref"); d.add_argument("--old"); d.add_argument("--new")
     cm = sub.add_parser("compare"); cm.add_argument("--mine", required=True)
     pl = sub.add_parser("plan"); pl.add_argument("--product", default="fbl")
     ts = sub.add_parser("typed-sql"); ts.add_argument("entity"); ts.add_argument("--product", default="fbl")
     e = sub.add_parser("export-rules"); e.add_argument("--out", default=str(ROOT / "data" / "dq" / "dq_rules.csv"))
     args = ap.parse_args()
-    sys.exit({"lint": cmd_lint, "bundle": cmd_bundle, "stamp": cmd_stamp, "diff": cmd_diff, "export-rules": cmd_export_rules, "compare": cmd_compare, "plan": cmd_plan, "typed-sql": cmd_typed_sql}[args.cmd](args))
+    sys.exit({"lint": cmd_lint, "bundle": cmd_bundle, "stamp": cmd_stamp, "diff": cmd_diff, "policy-diff": cmd_policy_diff, "export-rules": cmd_export_rules, "compare": cmd_compare, "plan": cmd_plan, "typed-sql": cmd_typed_sql}[args.cmd](args))

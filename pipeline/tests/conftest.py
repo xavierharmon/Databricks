@@ -34,7 +34,7 @@ def spark():
     pytest.importorskip("pyspark")
     from pyspark.sql import SparkSession
 
-    if "DATABRICKS_RUNTIME_VERSION" in os.environ:
+    if "DATABRICKS_RUNTIME_VERSION" in os.environ or os.path.exists("/databricks"):
         yield SparkSession.builder.getOrCreate()      # reuse the cluster's session; never call .master() here
         return
 
@@ -44,6 +44,8 @@ def spark():
         .config("spark.sql.shuffle.partitions", "2")
         .config("spark.ui.enabled", "false")
         .config("spark.sql.warehouse.dir", str(PIPELINE_ROOT / ".spark-warehouse"))
+        # Governance DDL is `CREATE TABLE x (cols)` with no format: without this, plain Spark demands Hive support.
+        .config("spark.sql.legacy.createHiveTableByDefault", "false")
     )
     # Plain open-source Spark is the default: it needs no downloads and matches the runner's --local-mode.
     # Set LAKEHOUSE_TEST_DELTA=1 to test against Delta (needs internet the first time, to fetch the Delta jar).

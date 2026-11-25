@@ -9,7 +9,8 @@ from datetime import datetime
 from pyspark.sql import functions as F
 
 from lib.contract_checks import CONTRACT_RESULTS_DDL, REGISTRY_DDL, ContractFailure, write_results
-from lib.contracts import (checksum, compile_all_rules, cprops, layer_of, lint, load_metric_view_definition, main_object)
+from lib import policy as P
+from lib.contracts import (checksum, compile_all_rules, cprops, layer_of, lint, load_metric_view_definition, main_object, parse_yaml)
 from lib.dq_engine import QUARANTINE_DDL, RESULTS_DDL, RULES_DDL, STATS_DDL
 
 STEP_LOG_DDL = "run_id STRING, step STRING, status STRING, started_at TIMESTAMP, ended_at TIMESTAMP, detail STRING"
@@ -24,7 +25,8 @@ def ensure_objects(ctx):
     for table, ddl in [("dq_rules", RULES_DDL), ("dq_rule_results", RESULTS_DDL), ("dq_table_stats", STATS_DDL),
                        ("dq_quarantine", QUARANTINE_DDL), ("data_contracts", REGISTRY_DDL),
                        ("data_contracts_history", REGISTRY_DDL), ("contract_results", CONTRACT_RESULTS_DDL),
-                       ("pipeline_step_log", STEP_LOG_DDL)]:
+                       ("pipeline_step_log", STEP_LOG_DDL),
+                       ("dq_action_overrides", P.OVERRIDES_DDL), ("dq_policy_history", P.HISTORY_DDL)]:
         s.sql(f"CREATE TABLE IF NOT EXISTS governance.{table} ({ddl})")
     s.sql("""CREATE OR REPLACE VIEW governance.v_dq_summary AS
         SELECT * FROM governance.dq_table_stats
@@ -37,7 +39,43 @@ def ensure_objects(ctx):
     s.sql("""CREATE OR REPLACE VIEW governance.v_contract_failures AS
         SELECT * FROM governance.contract_results WHERE passed = FALSE
         AND run_id = (SELECT run_id FROM governance.contract_results ORDER BY checked_at DESC LIMIT 1)""")
+    s.sql("""CREATE OR REPLACE VIEW governance.v_dq_overrides_latest AS
+        SELECT * FROM governance.dq_action_overrides
+        WHERE run_id = (SELECT run_id FROM governance.dq_action_overrides ORDER BY applied_at DESC LIMIT 1)""")
     ctx.log(f"  governance objects ready in catalog {ctx.catalog}")
+
+
+def apply_policy(ctx, rules, now):
+    """Layer the per-environment action overrides (policy/dq_actions.yml) on the compiled rules and record every decision.
+
+    Why here: the engine reads its rules from governance.dq_rules, which is written from what this returns. So the action that
+    runs is the action recorded in dq_rule_results, and the engine needs no knowledge of overrides at all.
+    """
+    policy = P.load_policy(ctx.policy_path, parse_yaml)
+    findings = P.validate(policy, rules)
+    for sev, ref, msg in findings:
+        ctx.log(f"  policy {sev}: {ref}: {msg}")
+    errors = [f for f in findings if f[0] == "error"]
+    if errors:
+        raise ContractFailure(f"{len(errors)} policy error(s) in {ctx.policy_path}: " + "; ".join(f"{r}: {m}" for _, r, m in errors[:5]))
+    chk = P.checksum(policy)
+    hist = ctx.spark.table("governance.dq_policy_history")
+    if hist.where(hist.checksum == chk).count() == 0:                    # an audit trail of every version of the policy that ever ran
+        ctx.spark.createDataFrame([(chk, str(policy.get("version")), now, json.dumps(policy, sort_keys=True, default=str))],
+                                  P.HISTORY_DDL).write.mode("append").saveAsTable("governance.dq_policy_history")
+        ctx.log(f"  policy v{policy.get('version')} ({chk}) recorded in governance.dq_policy_history")
+    declared = P._overrides(policy)
+    if not ctx.env:
+        ctx.log(f"  policy: no --env given, so none of the {len(declared)} override(s) are applied (contract actions only)")
+        return rules
+    effective, rows = P.apply(rules, policy, ctx.env, ctx.run_id, now)
+    if rows:
+        ctx.spark.createDataFrame(rows, P.OVERRIDES_DDL).write.mode("append").saveAsTable("governance.dq_action_overrides")
+    for r in rows:
+        ctx.log(f"  policy [{ctx.env}] {r[3]}: {r[7]} -> {r[8]} ({r[10]}; {r[9]}; approved by {r[12]}; expires {r[14] or 'n/a'})")
+    ctx.log(f"  policy v{policy.get('version')} for env {ctx.env}: {sum(1 for r in rows if r[10] == 'applied')} applied, "
+            f"{sum(1 for r in rows if r[10] != 'applied')} ignored")
+    return effective
 
 
 def publish_contracts(ctx):
@@ -72,7 +110,7 @@ def publish_contracts(ctx):
     n_new = new.count()
     if n_new:
         new.write.mode("append").saveAsTable("governance.data_contracts_history")
-    rules = compile_all_rules(cs)
+    rules = apply_policy(ctx, compile_all_rules(cs), now)
     cols = [c.split()[0] for c in RULES_DDL.split(", ")]
     ctx.spark.createDataFrame([tuple(r[c] for c in cols) for r in rules], RULES_DDL).write.mode("overwrite").saveAsTable("governance.dq_rules")
     rows.append((ctx.run_id, now, "(all)", "", "contract", "publish", f"published {len(cs.contracts)} contracts from {ctx.contracts_dir}",
