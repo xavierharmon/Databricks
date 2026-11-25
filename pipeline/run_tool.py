@@ -5,6 +5,7 @@
     run_tool.py [--code-dir ...] check     /Volumes/<cat>/bronze/landing/tix_generated
     run_tool.py [--code-dir ...] identity  /Volumes/<cat>/bronze/landing/tix_generated
     run_tool.py [--code-dir ...] train     --catalog pipeline_mlb_dev [--model-dir /Volumes/<cat>/governance/pipeline/models]
+    run_tool.py [--code-dir ...] test      --pipeline-root /Volumes/<cat>/governance/pipeline -m spark
     run_tool.py [--code-dir ...] catalog   --catalog-dir <folder> --contracts <folder> lint | render --out <folder> | tags-sql --catalog X | tags-apply --catalog X
 
 Why one launcher: your Job already runs run_pipeline.py with lakehouse.zip. This does the same for the helper tools, so the whole project
@@ -14,7 +15,7 @@ Why one launcher: your Job already runs run_pipeline.py with lakehouse.zip. This
 import os
 import sys
 
-TOOLS = {"generate": ("toolkit.generate_tix_data", "main", "argv"), "stage": ("toolkit.stage_landing", "main", "argv"),
+TOOLS = {"test": ("toolkit.run_tests", "main", "argv"), "generate": ("toolkit.generate_tix_data", "main", "argv"), "stage": ("toolkit.stage_landing", "main", "argv"),
          "check": ("toolkit.check_tix_data", "main", "path"), "identity": ("toolkit.identity_reference", "run", "path"),
          "catalog": ("toolkit.catalog_tool", "main", "argv"), "train": ("toolkit.train_models", "main", "argv")}
 
