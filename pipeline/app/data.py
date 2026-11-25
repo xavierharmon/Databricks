@@ -33,6 +33,12 @@ QUERIES = {
         SELECT s.journey_key, round(s.score, 3) AS score, f.event_category, f.sport, f.days_to_event
         FROM {CATALOG}.ml.purchase_propensity_scores s JOIN {CATALOG}.gold.tix_feature_purchase_propensity f ON s.journey_key = f.journey_key
         WHERE f.label_mature = 0 ORDER BY s.score DESC LIMIT 25""",
+    "sales_by_week": f"""
+        SELECT date_trunc('week', sale_ts) AS week, count(*) AS transfers, sum(price) AS gross_sales, sum(fee_total) AS fee_revenue
+        FROM {CATALOG}.gold.tix_fact_ticket_transfer GROUP BY 1 ORDER BY 1""",
+    "sales_by_category": f"""
+        SELECT event_category, count(*) AS transfers, sum(price) AS gross_sales, sum(fee_total) AS fee_revenue
+        FROM {CATALOG}.gold.tix_fact_ticket_transfer GROUP BY event_category ORDER BY gross_sales DESC""",
     "model_runs": f"""SELECT model_name, trained_at, metrics FROM {CATALOG}.governance.ml_model_runs ORDER BY trained_at DESC LIMIT 10""",
 }
 

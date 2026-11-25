@@ -1,7 +1,10 @@
-# Databricks Apps configuration (my understanding of the format; verify against current Apps documentation before deploying).
+# Databricks Apps configuration (verified against the Apps documentation for the command and the sql-warehouse resource key).
 command: ["streamlit", "run", "app.py"]
 env:
   - name: TIX_CATALOG
     value: "pipeline_mlb_dev"
   - name: DATABRICKS_WAREHOUSE_ID
-    valueFrom: "sql-warehouse"       # an app resource you attach in the Apps UI: your 2X-Small warehouse
+    valueFrom: "sql-warehouse"       # the SQL warehouse resource you attached to the app
+  # To preview the layout with invented numbers and no data access, uncomment these two lines, redeploy, and remove them again afterwards:
+  # - name: TIX_DEMO
+  #   value: "1"
