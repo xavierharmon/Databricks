@@ -19,7 +19,7 @@ sync:
     src: contracts
     dst: contracts
     kind: contracts
-    exclue: ["tix"]
+    exclude: ["tix"]
   - name: gold transforms
     src: transforms/gold
     dst: transforms/gold
