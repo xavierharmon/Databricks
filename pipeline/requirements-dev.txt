@@ -1,5 +1,5 @@
-pytest>=8
+pytest>=8,<9
 pyyaml>=6
-pyspark==4.0.0        # local SQL validation only (tests/local_pipeline_check.py); needs Java 17+
-databricks-sdk>=0.40  # only for ardoq/sync_to_ardoq.py
-requests>=2.31        # only for ardoq/sync_to_ardoq.py
+# Tier B only. Needs Java 17 on the machine. Pin to match your runtime family.
+pyspark==3.5.1
+delta-spark==3.2.0
