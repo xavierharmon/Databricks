@@ -40,7 +40,25 @@ from pathlib import Path
 
 import yaml
 
-TOOLS = Path(__file__).resolve().parent
+def _tools_dir():
+    """Where tools/ is. Databricks runs a Python script task by executing the file's text, so __file__ may not exist: fall back to the
+    script path in sys.argv, then to --repo-root, and otherwise say exactly what to pass."""
+    try:
+        return Path(__file__).resolve().parent
+    except NameError:
+        pass
+    for a in sys.argv:
+        if a.endswith("sync_to_volume.py") and Path(a).exists():
+            return Path(a).resolve().parent
+    for i, a in enumerate(sys.argv):
+        val = a.split("=", 1)[1] if a.startswith("--repo-root=") else (sys.argv[i + 1] if a == "--repo-root" and i + 1 < len(sys.argv) else None)
+        if val:
+            return Path(val) / "tools"
+    raise SystemExit("cannot tell where the repository is. Add the parameter  --repo-root  <path to the folder that holds tools/ and deploy/>, "
+                     "for example /Workspace/Users/<you>/<git folder>/pipeline")
+
+
+TOOLS = _tools_dir()
 sys.path.insert(0, str(TOOLS))
 
 
@@ -149,7 +167,7 @@ def find_commit(repo, given):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--repo-root", default=str(TOOLS.parent))
+    ap.add_argument("--repo-root", default=str(TOOLS.parent), help="folder that holds tools/, deploy/ and contracts/ (needed on Databricks if the script path cannot be detected)")
     ap.add_argument("--config", default=None, help="default <repo>/deploy/sync.yml")
     ap.add_argument("--dest", default=None, help="overrides dest_root in the config")
     ap.add_argument("--commit", default="", help="git commit to record (best effort if omitted)")
@@ -265,4 +283,6 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    rc = main()
+    if rc:                    # exit only on failure: Databricks marks a script task that calls sys.exit(0) as failed
+        sys.exit(rc)
