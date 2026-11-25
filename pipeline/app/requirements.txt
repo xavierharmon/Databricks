@@ -1,4 +1,5 @@
 streamlit
+altair
 databricks-sql-connector
 databricks-sdk
 pandas
