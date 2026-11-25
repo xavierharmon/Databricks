@@ -78,6 +78,11 @@ def fit_evaluate(df, spec, seed=0):
                 train_through=str(train[spec["time"]].max()), test_from=str(test[spec["time"]].min()), features=feats), model
 
 
+def experiment_path(user, override=""):
+    """A Job has no default MLflow experiment (a notebook does), so name one: --experiment, else /Users/<you>/tix_models."""
+    return override or f"/Users/{user}/tix_models"
+
+
 def _to_pandas(spark, table):
     from pyspark.sql import functions as F
     df = spark.table(table)
@@ -89,6 +94,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--catalog", default="")
     ap.add_argument("--model-dir", default="")
+    ap.add_argument("--experiment", default="", help="MLflow experiment path (default /Users/<current user>/tix_models)")
     ap.add_argument("--min-lift", type=float, default=None, help="override each model's required AUC lift over its baseline (the defaults are in SPECS: a weak baseline must be beaten; a baseline that encodes the true driver need only be matched)")
     a = ap.parse_args(argv)
     from pyspark.sql import SparkSession
@@ -98,6 +104,7 @@ def main(argv=None):
     spark.sql("CREATE SCHEMA IF NOT EXISTS ml")
     spark.sql("CREATE TABLE IF NOT EXISTS governance.ml_model_runs (run_id STRING, model_name STRING, trained_at TIMESTAMP, metrics STRING)")
     run_id, bad = datetime.now().strftime("%Y%m%d-%H%M%S"), 0
+    experiment = experiment_path(spark.sql("SELECT current_user()").first()[0], a.experiment)
     for name, spec in SPECS.items():
         df = _to_pandas(spark, spec["table"])
         metrics, model = fit_evaluate(df, spec)
@@ -113,12 +120,13 @@ def main(argv=None):
             continue
         try:                                                    # MLflow is optional: its availability on Free Edition is unconfirmed
             import mlflow
+            mlflow.set_experiment(experiment)
             with mlflow.start_run(run_name=f"{name}-{run_id}"):
                 mlflow.log_metrics({k: v for k, v in metrics.items() if isinstance(v, float)})
                 mlflow.log_param("features", ",".join(metrics["features"]))
                 mlflow.sklearn.log_model(model, "model")
         except Exception as e:  # noqa: BLE001
-            print(f"  (MLflow not used: {str(e)[:80]})")
+            print(f"  (MLflow not used: {str(e)[:160]})")
         feats = spec["numeric"] + spec["categorical"]
         scored = df[[spec["key"]]].copy()
         scored["score"] = model.predict_proba(df[feats].astype({c: float for c in spec["numeric"]}))[:, 1]
@@ -134,4 +142,6 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    rc = main()
+    if rc:                    # exit only on failure (Databricks treats sys.exit(0) as a failed task)
+        sys.exit(rc)
