@@ -46,6 +46,10 @@ sync:
     src: catalog
     dst: catalog
     exclude: ["principals.yml", "__pycache__"]
+  - name: app
+    src: app
+    dst: app
+    prune: true
 
 # Set prune: true on an entry to DELETE files in its destination that no longer exist in the repository.
 # Leave it off for any folder that also holds files you put there by hand.
