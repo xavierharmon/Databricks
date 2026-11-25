@@ -43,6 +43,8 @@ def _make_importable(argv):
             return zipped
         if os.path.isdir(os.path.join(c, "lakehouse")):
             sys.path.insert(0, c)
+            if os.path.isdir(os.path.join(c, "src", "lib")):      # a Git checkout keeps `lib` under src/; the zip keeps it at the top
+                sys.path.insert(1, os.path.join(c, "src"))
             return c
     raise SystemExit("cannot find the pipeline code: pass --code-dir <folder containing lakehouse.zip> "
                      "(tried: " + ", ".join(c for c in candidates if c) + ")")
@@ -51,4 +53,6 @@ def _make_importable(argv):
 if __name__ == "__main__":
     _make_importable(sys.argv[1:])
     from lakehouse.runner import main
-    sys.exit(main())
+    rc = main()
+    if rc:                    # exit only on failure: Databricks marks a script task that calls sys.exit(0) as failed
+        sys.exit(rc)

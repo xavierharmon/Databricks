@@ -1,0 +1,15 @@
+page: fee-revenue
+domain: sales/ledger
+title: Fee revenue
+synonyms:
+- fees
+description: Buyer fee plus seller fee, earned on every sale type.
+owner: sales_ops
+state: published
+related_assets:
+- kind: metric_view
+  name: tix.semantic.mv_sales
+sources: []
+body: |
+  ## Definition
+  Fee revenue is the sum of buyer fees and seller fees across transfers. Fee rates depend on sale type, event category and date, so the rate in force on the sale date is used.

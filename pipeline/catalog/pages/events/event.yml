@@ -1,0 +1,17 @@
+page: event
+domain: events
+title: Event
+synonyms: []
+description: 'A single ticketed occasion: a game or a concert.'
+owner: event_programming
+state: published
+related_assets:
+- kind: contract
+  name: tix.silver.event
+sources: []
+body: |
+  ## Definition
+  An event has one start time, one venue and a category. Sports and special events share one table; a sport is filled in only for sports, and the people or teams taking part live in a separate participant link.
+
+  ## Why one table
+  A concert needs no home team, and a new sport needs no new column.

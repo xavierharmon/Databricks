@@ -1,0 +1,14 @@
+page: total-earnings
+domain: sales/ledger
+title: Total earnings
+synonyms: []
+description: Fee revenue plus owned-inventory profit.
+owner: sales_ops
+state: published
+related_assets:
+- kind: metric_view
+  name: tix.semantic.mv_sales
+sources: []
+body: |
+  ## Definition
+  Total earnings = fee revenue + owned-inventory profit. It deliberately excludes the ticket price on primary sales, which is not company revenue by default.

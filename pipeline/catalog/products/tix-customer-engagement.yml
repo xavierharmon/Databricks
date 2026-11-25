@@ -1,0 +1,28 @@
+apiVersion: v1.0.0
+kind: DataProduct
+id: tix-customer-engagement
+name: Customer Engagement
+version: 0.1.0
+status: draft
+domain: customer
+description:
+  purpose: Who visits, how often they come back before buying, and the prices they saw, tied to people instead of browsers.
+  limitations: Identity links are probabilistic below the strongest tiers. Shared-device sessions are left unattributed on purpose. Counts are within a 30-day window.
+  usage: Use mv_engagement. Treat price effects as signals, not proof; compare buyers with visitors who left.
+team: {name: Marketing Analytics, owner: marketing_analytics, technical_contact: data_engineering}
+support: [{channel: "#tix-data", tool: chat}]
+tags: [tix, customer, draft]
+artifacts:
+  - name: purchase_journeys
+    description: One person and one event, bought or not, with be-backs and price at visit.
+    versions:
+      - {version: 0.1.0, status: draft, out: [{contractId: tix.gold.fact_purchase_journey, version: 1.0.0}, {contractId: tix.gold.fact_event_visit, version: 1.0.0}]}
+  - name: preferences
+    description: Customer affinity to event tags.
+    versions:
+      - {version: 0.1.0, status: draft, out: [{contractId: tix.gold.customer_tag_affinity, version: 1.0.0}]}
+  - name: engagement_metrics
+    description: Governed engagement metrics.
+    versions:
+      - {version: 0.1.0, status: draft, out: [{contractId: tix.semantic.mv_engagement, version: 1.0.0}]}
+consumers: [marketing_dashboards]

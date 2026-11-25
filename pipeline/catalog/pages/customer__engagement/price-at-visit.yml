@@ -1,0 +1,17 @@
+page: price-at-visit
+domain: customer/engagement
+title: Price at visit
+synonyms: []
+description: The price in force for an event section at the moment a visitor viewed it.
+owner: marketing_analytics
+state: published
+related_assets:
+- kind: contract
+  name: tix.silver.price_history
+sources: []
+body: |
+  ## Definition
+  Price at visit is found by an as-of lookup: the latest price change at or before the view time, for the event and section viewed.
+
+  ## Use
+  Comparing price at first visit with price at purchase shows whether prices fell while the visitor was deciding. Buyers alone cannot prove cause; compare with visitors who did not buy.

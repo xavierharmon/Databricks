@@ -1,0 +1,17 @@
+page: event-category
+domain: events
+title: Event category
+synonyms: []
+description: Whether an event is a sport or a special event such as a concert.
+owner: event_programming
+state: published
+related_assets:
+- kind: contract
+  name: tix.silver.event
+sources: []
+body: |
+  ## Values
+  - sport: baseball, football or basketball (the sport column says which)
+  - concert: a performer, no sport
+
+  Fees and pricing differ by category, which is why it is stored on the event.

@@ -1,0 +1,19 @@
+page: ops-approx
+domain: baseball_operations
+title: OPS (approx)
+synonyms:
+- OPS
+description: On-base percentage plus slugging percentage, approximated because the league data lacks hit-by-pitch
+  and sacrifice flies.
+owner: baseball_ops
+state: published
+related_assets:
+- kind: metric_view
+  name: fbl.semantic.mv_fbl_batting
+sources: []
+body: |
+  ## Definition
+  OPS is on-base percentage plus slugging percentage.
+
+  ## Why it says approx
+  The fictional league records hits, walks and at bats but not hit-by-pitch or sacrifice flies, so on-base percentage is an approximation. Compare OPS only between groups computed the same way.

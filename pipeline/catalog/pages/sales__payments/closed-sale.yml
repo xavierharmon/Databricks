@@ -1,0 +1,28 @@
+page: closed-sale
+domain: sales/payments
+title: Closed sale
+synonyms:
+- closed order
+description: An order whose net captured payments have reached 80 percent of its total.
+owner: sales_ops
+state: published
+related_assets:
+- kind: metric_view
+  name: tix.semantic.mv_installments
+sources: []
+body: |
+  ## Definition
+  An order is closed when net captured money (captures minus refunds and chargebacks) is at least 80 percent of the order total. The test is by amount, in whole cents, not by counting payments.
+
+  ## Payments needed to close
+  | Plan length | Payments needed |
+  | --- | --- |
+  | 5 | 4 |
+  | 6 | 5 |
+  | 7 | 6 |
+  | 8 | 7 |
+  | 9 | 8 |
+  | 10 | 8 |
+
+  ## First closed versus closed now
+  First-closed is the time the threshold was first reached and is never erased. Closed-now says whether net payments still meet it after refunds.

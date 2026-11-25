@@ -1,0 +1,20 @@
+page: be-back
+domain: customer/engagement
+title: Be-back
+synonyms:
+- return visits
+description: A return visit to an event page before the visitor buys a ticket for it.
+owner: marketing_analytics
+state: published
+related_assets:
+- kind: metric_view
+  name: tix.semantic.mv_engagement
+sources: []
+body: |
+  ## Definition
+  Be-backs = visits before purchase minus one. A visit is a session that viewed the event. A buyer who purchased on the first visit has zero be-backs.
+
+  ## Defaults
+  - Same event only.
+  - Counted by session, within 30 days before the purchase.
+  - Only sessions that identity stitching could attribute to the buyer.

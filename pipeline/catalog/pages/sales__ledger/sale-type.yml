@@ -1,0 +1,20 @@
+page: sale-type
+domain: sales/ledger
+title: Sale type
+synonyms: []
+description: 'The four kinds of ticket transfer: primary, resale, buyback and company resale.'
+owner: sales_ops
+state: published
+related_assets:
+- kind: contract
+  name: tix.gold.fact_ticket_transfer
+sources: []
+body: |
+  | Sale type | Seller | Buyer |
+  | --- | --- | --- |
+  | primary | box office inventory | customer |
+  | resale | customer | customer |
+  | buyback | customer | the company |
+  | company resale | the company | customer |
+
+  A buyback creates owned inventory with a cost basis, the price the company paid.

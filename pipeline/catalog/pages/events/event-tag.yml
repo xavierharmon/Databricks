@@ -1,0 +1,14 @@
+page: event-tag
+domain: events
+title: Event tag
+synonyms: []
+description: A label describing an event, such as rivalry or family friendly, used to understand customer preferences.
+owner: event_programming
+state: published
+related_assets:
+- kind: contract
+  name: tix.silver.event_tag
+sources: []
+body: |
+  ## Definition
+  Tags are many-to-many: an event has several tags and a tag applies to many events. They are the bridge between what a visitor looked at and what they prefer.

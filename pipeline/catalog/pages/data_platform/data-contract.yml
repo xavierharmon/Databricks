@@ -1,0 +1,14 @@
+page: data-contract
+domain: data_platform
+title: Data contract
+synonyms: []
+description: 'A written agreement about a dataset: its columns, rules, owner and promises.'
+owner: data_governance
+state: published
+related_assets:
+- kind: contract
+  name: fbl.silver.team
+sources: []
+body: |
+  ## Definition
+  A data contract (Open Data Contract Standard) is a YAML file the pipeline reads on every run. It lists the columns and types, the quality rules and what happens to rows that break them, and who owns the data. The pipeline's behaviour is generated from it.

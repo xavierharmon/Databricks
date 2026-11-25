@@ -1,0 +1,14 @@
+page: conversion-rate
+domain: customer/engagement
+title: Conversion rate
+synonyms: []
+description: Journeys that ended in a purchase divided by all journeys.
+owner: marketing_analytics
+state: published
+related_assets:
+- kind: metric_view
+  name: tix.semantic.mv_engagement
+sources: []
+body: |
+  ## Definition
+  A journey is one person and one event. Conversion rate is journeys with a purchase divided by all journeys, so visitors who never buy are included.

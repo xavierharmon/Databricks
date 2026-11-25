@@ -1,0 +1,14 @@
+page: payment-plan
+domain: sales/payments
+title: Payment plan
+synonyms: []
+description: An order paid in 5 to 10 equal installments.
+owner: sales_ops
+state: published
+related_assets:
+- kind: contract
+  name: tix.silver.order_plan
+sources: []
+body: |
+  ## Definition
+  A plan splits the order total into equal payments; the last payment absorbs any leftover cents. Payments are due at a fixed interval, and a failed payment can be retried once.

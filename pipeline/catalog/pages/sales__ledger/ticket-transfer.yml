@@ -1,0 +1,21 @@
+page: ticket-transfer
+domain: sales/ledger
+title: Ticket transfer
+synonyms: []
+description: One change of ownership of one ticket; the row of the ledger.
+owner: sales_ops
+state: published
+related_assets:
+- kind: contract
+  name: tix.gold.fact_ticket_transfer
+sources: []
+body: |
+  ## Definition
+  A transfer records a ticket moving from a seller to a buyer at a price, with the buyer fee, seller fee, total paid and seller payout.
+
+  ## Why a ledger
+  A ticket can be sold many times, so ownership is never a column on the ticket. It is the buyer of the most recent transfer.
+
+  ## Rules that must hold
+  - This transfer's seller is the previous transfer's buyer.
+  - Total paid equals price plus buyer fee; payout equals price minus seller fee.
