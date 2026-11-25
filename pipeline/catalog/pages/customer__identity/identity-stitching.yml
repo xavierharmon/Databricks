@@ -1,0 +1,20 @@
+page: identity-stitching
+domain: customer/identity
+title: Identity stitching
+synonyms: []
+description: Linking anonymous browsers and customer records to one person, ranked by how much each signal is trusted.
+owner: marketing_analytics
+state: published
+related_assets:
+- kind: contract
+  name: tix.silver.identity_map
+sources: []
+body: |
+  ## Signals, strongest first
+  1. The session logged in.
+  2. The session bought, and the order belongs to a customer.
+  3. A guest checkout carried an email hash matching a customer.
+  4. A new browser id after a cookie reset shares a fingerprint that belongs to exactly one person (probable).
+
+  ## Retroactive
+  Once a browser id is linked, its earlier anonymous sessions belong to that person too, but only if the browser id points at exactly one person.

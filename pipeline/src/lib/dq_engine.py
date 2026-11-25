@@ -130,6 +130,14 @@ def _add_flag(spark, df: DataFrame, rule: dict, flag: str) -> DataFrame:
         return (df.join(ref, df[_q(col)] == F.col("_ref_k"), "left")
                   .withColumn(flag, F.col(_q(col)).isNotNull() & F.col("_ref_k").isNull())
                   .drop("_ref_k"))
+    if t == "join_check":
+        # expression: <parent table>|<child column>=<parent column>|<violation condition using child columns and _p_<parent column>>
+        ptable, join, cond = [x.strip() for x in rule["expression"].split("|", 2)]
+        ccol, pcol = [x.strip() for x in join.split("=")]
+        parent = spark.table(ptable)
+        parent = parent.select(*[F.col(_q(c)).alias(f"_p_{c}") for c in parent.columns if not c.startswith("_")]).dropDuplicates([f"_p_{pcol}"])
+        j = df.join(parent, df[_q(ccol)] == F.col(f"_p_{pcol}"), "left").withColumn(flag, F.coalesce(F.expr(cond), F.lit(False)))
+        return j.drop(*[c for c in j.columns if c.startswith("_p_")])
     return df.withColumn(flag, F.coalesce(_predicate(rule, [c for c in df.columns if not c.startswith("_")]), F.lit(False)))
 
 
@@ -155,6 +163,7 @@ def apply_rules(spark: SparkSession, df: DataFrame, rules: list, run_id: str, la
     mode='assert': never remove rows (use for gold); every violation is treated as a failure.
     """
     assert mode in ("filter", "assert")
+    rules = [r for r in rules if r["rule_type"] != "sql_audit"]      # audits are whole-table SQL checks run by the gold stage
     if "_row_id" not in df.columns:      # e.g. gold tables: give every row a stable id for ordering/logging
         df = df.withColumn("_row_id", F.monotonically_increasing_id())
     log_frames, results = [], []

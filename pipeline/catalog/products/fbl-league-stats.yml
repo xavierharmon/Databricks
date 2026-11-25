@@ -1,0 +1,30 @@
+# Data product (ODPS-style, following the artifacts -> versions -> out/contractId pattern in Doc 02).
+# Verify field names against the ODPS version you adopt; ODPS is young and still moving.
+apiVersion: v1.0.0
+kind: DataProduct
+id: fbl-league-stats
+name: FBL League Stats
+version: 1.0.0
+status: active
+domain: baseball_operations
+description:
+  purpose: Trusted batting, roster and team statistics for the Fictional Baseball League.
+  limitations: On-base and OPS are approximations (no hit-by-pitch or sacrifice-fly data). Rejected rows are not in gold; they are in quarantine.
+  usage: Query the metric views for ratios. Do not average player averages.
+team: {name: Baseball Analytics, owner: baseball_ops, technical_contact: data_engineering}
+support: [{channel: "#fbl-data", tool: chat}]
+tags: [fbl, baseball, certified]
+artifacts:
+  - name: batting_facts
+    description: Cleaned batting rows with team and player dimensions.
+    versions:
+      - {version: 1.0.0, status: active, out: [{contractId: fbl.gold.fact_batting, version: 1.0.0}, {contractId: fbl.gold.dim_player, version: 1.0.0}, {contractId: fbl.gold.dim_team, version: 1.0.0}]}
+  - name: batting_metrics
+    description: Governed batting metrics for analysts and Genie.
+    versions:
+      - {version: 1.0.0, status: active, out: [{contractId: fbl.semantic.mv_fbl_batting, version: 1.0.0}]}
+  - name: roster_metrics
+    description: Roster composition metrics.
+    versions:
+      - {version: 1.0.0, status: active, out: [{contractId: fbl.semantic.mv_fbl_roster, version: 1.0.0}]}
+consumers: [bi_dashboards, genie_space_fbl]

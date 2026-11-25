@@ -1,0 +1,18 @@
+page: owned-inventory-profit
+domain: sales/ledger
+title: Owned-inventory profit
+synonyms:
+- buyback profit
+description: What the company earns by buying a ticket back and selling it again.
+owner: sales_ops
+state: published
+related_assets:
+- kind: metric_view
+  name: tix.semantic.mv_sales
+sources: []
+body: |
+  ## Definition
+  For each company resale, profit is the sale price minus the price paid in the most recent earlier buyback of the same ticket.
+
+  ## Not included
+  Fees are counted separately in fee revenue.

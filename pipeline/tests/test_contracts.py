@@ -52,7 +52,8 @@ def test_all_contracts_lint_clean_against_the_metric_view_definitions():
 def test_rules_compiled_from_contracts_equal_the_legacy_csv():
     key = lambda r: (r["rule_id"], r["layer"], r["table_name"], r["rule_type"], r["columns"], r["expression"], r["action"],
                      r["description"], r["owner"])
-    compiled = {key(r) for r in C.compile_all_rules(C.ContractSet(load()))}
+    legacy_route = [c for c in load() if c.get("dataProduct") != "tix"]      # the legacy CSV and notebook only know fbl and lahman
+    compiled = {key(r) for r in C.compile_all_rules(C.ContractSet(legacy_route))}
     legacy = {key(r) for r in csv.DictReader(open(ROOT / "data/dq/dq_rules.csv"))}
     assert compiled == legacy, "contracts and data/dq/dq_rules.csv disagree: run `python tools/contract_tool.py export-rules`"
 
@@ -66,7 +67,7 @@ def test_typed_select_is_generated_from_the_contracts():
 
 
 def test_bundle_roundtrip_and_notebook_embeds_the_current_contracts():
-    cs = load()
+    cs = [c for c in load() if c.get("dataProduct") != "tix"]      # the notebook route embeds only fbl and lahman
     bundle = C.make_bundle(cs, {"x.sql": "select 1"})
     assert C.contracts_from_bundle(json.dumps(bundle)) == cs
     nb = (ROOT / "src/notebooks/fbl_dq_pipeline.py").read_text()

@@ -53,3 +53,14 @@ build/
 .DS_Store
 Thumbs.db
 *.log
+
+# === tix / v3 additions ===
+# generated synthetic data and the answer key (never upload truth/ or answer_key/ to a landing zone)
+pipeline/data/tix/
+# owner ids for publishing glossary pages (copy catalog/principals.example.yml)
+pipeline/catalog/principals.yml
+# build output and local Spark leftovers
+pipeline/dist/
+**/spark-warehouse/
+**/metastore_db/
+.pytest_cache/

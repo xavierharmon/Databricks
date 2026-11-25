@@ -1,0 +1,14 @@
+page: shared-device
+domain: customer/identity
+title: Shared device
+synonyms: []
+description: A browser id that is linked to two or more people, such as a household computer.
+owner: marketing_analytics
+state: published
+related_assets:
+- kind: contract
+  name: tix.silver.identity_map
+sources: []
+body: |
+  ## Rule
+  Only sessions with their own evidence (a login or a purchase) are attributed on a shared device. The rest are left ambiguous on purpose, because guessing creates false merges.

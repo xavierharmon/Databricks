@@ -1,0 +1,28 @@
+apiVersion: v1.0.0
+kind: DataProduct
+id: tix-ticket-sales
+name: Ticket Sales
+version: 0.1.0
+status: draft
+domain: sales
+description:
+  purpose: The ticket ledger, fees, owned-inventory profit and installment payments, as one trusted set.
+  limitations: Corrections and voids are not modelled yet. Revenue is reported on the sale date.
+  usage: Use mv_sales for earnings and mv_installments for closed sales. Query the ledger only for audit questions.
+team: {name: Sales Analytics, owner: sales_ops, technical_contact: data_engineering}
+support: [{channel: "#tix-data", tool: chat}]
+tags: [tix, sales, draft]
+artifacts:
+  - name: transfer_ledger
+    description: One row per ownership transfer, with fees, cost basis and profit.
+    versions:
+      - {version: 0.1.0, status: draft, out: [{contractId: tix.gold.fact_ticket_transfer, version: 1.0.0}, {contractId: tix.gold.ticket_current_owner, version: 1.0.0}]}
+  - name: installments
+    description: One row per order with the closed-sale fields.
+    versions:
+      - {version: 0.1.0, status: draft, out: [{contractId: tix.gold.fact_order_payment_status, version: 1.0.0}]}
+  - name: sales_metrics
+    description: Governed sales and installment metrics.
+    versions:
+      - {version: 0.1.0, status: draft, out: [{contractId: tix.semantic.mv_sales, version: 1.0.0}, {contractId: tix.semantic.mv_installments, version: 1.0.0}]}
+consumers: [finance_dashboards]

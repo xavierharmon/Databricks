@@ -30,7 +30,7 @@ STATUSES = {"draft", "active", "deprecated"}
 ENGINE_DQ = "fbl-dq-engine"
 ENGINE_SEM = "fbl-semantic-checks"
 SEMVER = re.compile(r"^\d+\.\d+\.\d+$")
-RULE_TYPES = {"not_null", "allowed_values", "range", "custom", "referential", "exact_duplicate", "unique", "unique_strict",
+RULE_TYPES = {"join_check", "sql_audit", "not_null", "allowed_values", "range", "custom", "referential", "exact_duplicate", "unique", "unique_strict",
               "standardized", "no_nulls"}
 ACTIONS = {"dedupe", "standardize", "quarantine", "warn", "fail"}
 TEST_TYPES = {"reconcile", "expect", "bounds"}
@@ -155,13 +155,16 @@ def typed_select(silver: dict, source: dict) -> str:
     for p in sobj["properties"]:
         cp = cprops(p)
         src = cp.get("sourceColumn", p["name"])
-        base = f"NULLIF(trim(`{src}`), '')"
+        base = f"NULLIF(trim({cp['sourceExpression']}), '')" if cp.get("sourceExpression") else f"NULLIF(trim(`{src}`), '')"
         t = p["logicalType"]
+        ctype = cast.get(t)
+        if t == "number" and str(p.get("physicalType", "")).upper().startswith("DECIMAL"):
+            ctype = str(p["physicalType"]).upper()          # money and exact quantities: never floating point
         if t == "string":
             std = cp.get("standardize")
             expr = {"upper": f"upper({base})", "lower": f"lower({base})", "initcap": f"initcap({base})"}.get(std, base)
         else:
-            expr = f"try_cast({base} AS {cast[t]})"
+            expr = f"try_cast({base} AS {ctype})"
         cols.append(f"{expr} AS `{p['name']}`")
     raw = ", ".join(f"t.`{p['name']}`" for p in bobj["properties"])
     cols += ["_row_id", f"to_json(struct({raw})) AS _raw", "_ingested_at"]
@@ -267,7 +270,7 @@ def lint(cs: ContractSet, definitions: dict = None) -> list:
                     err(c, f"{rid}: unknown action {i.get('action')!r}")
                 if layer == "gold" and i.get("action") != "fail":
                     err(c, f"{rid}: gold rules must use action 'fail'")
-                if i.get("rule_type") in {"allowed_values", "range", "custom", "referential"} and not i.get("expression"):
+                if i.get("rule_type") in {"allowed_values", "range", "custom", "referential", "join_check", "sql_audit"} and not i.get("expression"):
                     err(c, f"{rid}: {i.get('rule_type')} needs an expression")
                 if not q.get("description"):
                     warn(c, f"{rid}: missing description")
@@ -341,8 +344,15 @@ def lint(cs: ContractSet, definitions: dict = None) -> list:
                         sc = cprops(p).get("sourceColumn", p["name"])
                         if sc not in src_names:
                             err(c, f"property {p['name']}: source column {sc!r} not in {src_id}")
-            if layer == "gold" and ocp.get("reconcilesTo") and not ocp["reconcilesTo"].startswith("silver."):
-                err(c, "reconcilesTo should name a silver table")
+            if layer == "gold":
+                mode = ocp.get("reconcileMode") or ("rowcount" if ocp.get("reconcilesTo") else None)
+                if mode not in ("rowcount", "sum", "none"):
+                    err(c, "a gold contract must say how it reconciles with silver: reconcilesTo (row count), reconcileMode: sum with reconcilesTo, "
+                           "reconcileColumn and reconcileSilverColumn, or reconcileMode: none")
+                if mode in ("rowcount", "sum") and not str(ocp.get("reconcilesTo", "")).startswith("silver."):
+                    err(c, "reconcilesTo must name a silver table (silver.<table>)")
+                if mode == "sum" and not (ocp.get("reconcileColumn") and ocp.get("reconcileSilverColumn")):
+                    err(c, "reconcileMode: sum needs reconcileColumn (gold) and reconcileSilverColumn (silver)")
         if layer == "source":
             for p in obj.get("properties", []):
                 if p.get("logicalType") != "string":
@@ -398,6 +408,16 @@ def lint(cs: ContractSet, definitions: dict = None) -> list:
                         if p["name"] in live and want and want != live[p["name"]]:
                             err(c, f"{p['name']}: definition changed (hash {live[p['name']]} != contract {want}). "
                                    "Bump the contract version (major if consumers are affected) and run `contract_tool.py stamp`")
+    # governance tables (dq_rules, dq_rule_results, dq_table_stats) are keyed by layer and entity, so two products must not share a name
+    owner_of = {}
+    for c in cs.contracts:
+        if layer_of(c) in ("silver", "gold") and c.get("schema"):
+            e = cprops(main_object(c)).get("entity")
+            if e and (layer_of(c), e) in owner_of and owner_of[(layer_of(c), e)] != c.get("id"):
+                out.append(("error", c.get("id", "?"), f"entity {e!r} in layer {layer_of(c)} is already used by {owner_of[(layer_of(c), e)]}; "
+                                                       "governance tables are keyed by layer and entity, so entity names must be unique across products"))
+            elif e:
+                owner_of[(layer_of(c), e)] = c.get("id")
     return out
 
 

@@ -1,0 +1,22 @@
+page: batting-average
+domain: baseball_operations
+title: Batting average
+synonyms:
+- AVG
+- BA
+description: Hits divided by at bats, always computed from summed hits and summed at bats.
+owner: baseball_ops
+state: published
+related_assets:
+- kind: metric_view
+  name: fbl.semantic.mv_fbl_batting
+sources: []
+body: |
+  ## Definition
+  Batting average is total hits divided by total at bats.
+
+  ## How it is calculated here
+  The metric view sums hits and at bats for the group you are looking at, then divides. It never averages players' individual averages, because a player with 4 at bats would count as much as one with 400.
+
+  ## Watch out
+  Walks and sacrifices are not at bats. A group with no at bats returns no value rather than zero.

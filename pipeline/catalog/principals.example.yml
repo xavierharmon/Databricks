@@ -1,0 +1,8 @@
+# Copy to principals.yml (git-ignored) and fill in. Databricks wants numeric principal IDs, not emails.
+# Find an ID in the workspace admin settings (users, groups, service principals). Unlisted owners are skipped on publish.
+data_engineering: "0"
+baseball_ops: "0"
+event_programming: "0"
+sales_ops: "0"
+marketing_analytics: "0"
+data_governance: "0"

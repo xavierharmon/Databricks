@@ -1,0 +1,12 @@
+page: data-product
+domain: data_platform
+title: Data product
+synonyms: []
+description: A packaged, owned, discoverable set of datasets built from one or more contracts.
+owner: data_governance
+state: published
+related_assets: []
+sources: []
+body: |
+  ## Definition
+  A data product (Open Data Product Standard) wraps contract-backed outputs with a name, owner, purpose, versions and support details. Consumers find and trust products; contracts handle dataset-level mechanics.

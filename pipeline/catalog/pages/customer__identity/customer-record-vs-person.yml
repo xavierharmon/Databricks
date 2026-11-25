@@ -1,0 +1,14 @@
+page: customer-record-vs-person
+domain: customer/identity
+title: Customer record versus person
+synonyms: []
+description: A person can have more than one customer record; analytics counts people.
+owner: marketing_analytics
+state: published
+related_assets:
+- kind: contract
+  name: tix.silver.customer
+sources: []
+body: |
+  ## Definition
+  A customer record is one row in the customer system. A person is the real individual. Two records are merged into one person when they share an email hash, or share both a phone hash and a postal code.

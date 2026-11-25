@@ -1,0 +1,20 @@
+page: fbl-team
+domain: baseball_operations
+title: FBL team
+synonyms: []
+description: A franchise in the Fictional Baseball League, also the home or away side of a baseball event in the
+  ticketing domain.
+owner: baseball_ops
+state: published
+related_assets:
+- kind: contract
+  name: fbl.gold.dim_team
+- kind: contract
+  name: tix.silver.event_participant
+sources: []
+body: |
+  ## Definition
+  A team is one franchise with a stable team id (T01 to T08 are the valid ones in the sample data). League is North or South.
+
+  ## Shared reference
+  Ticketed baseball events use the same team ids as participants, so ticket sales can be sliced by the team that actually plays.

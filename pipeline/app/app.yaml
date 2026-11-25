@@ -1,0 +1,7 @@
+# Databricks Apps configuration (my understanding of the format; verify against current Apps documentation before deploying).
+command: ["streamlit", "run", "app.py"]
+env:
+  - name: TIX_CATALOG
+    value: "pipeline_mlb_dev"
+  - name: DATABRICKS_WAREHOUSE_ID
+    valueFrom: "sql-warehouse"       # an app resource you attach in the Apps UI: your 2X-Small warehouse

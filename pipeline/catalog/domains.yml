@@ -1,0 +1,67 @@
+# Domains and subdomains: the business areas people browse on the Databricks Discover page.
+# Each one maps to a governed tag (tag_key). A subdomain's tag is "<parent tag>/<name>" (one slash per level, up to five levels).
+# The `id` is OUR stable name; it is also what contracts use in their `domain:` field, so lint can check they agree.
+# Owners are names, resolved to Databricks principal IDs through catalog/principals.yml when you publish.
+domains:
+  - id: baseball_operations
+    tag_key: baseball_operations
+    display_name: Baseball Operations
+    subtitle: "The Fictional Baseball League: teams, players and batting"
+    description: "Everything about how the Fictional Baseball League is run on the field. Source of the shared team reference used by the ticketing domain."
+    icon: TROPHY
+    color: "#1B5E20"
+    owners: {technical: [data_engineering], business: [baseball_ops]}
+  - id: events
+    tag_key: events
+    display_name: Events and Venues
+    subtitle: Sports and special events in one catalog
+    description: Every ticketed occasion (baseball, football, basketball, concerts), where it happens, who takes part, and how it is tagged.
+    icon: FLAG_CHECKERED
+    color: "#0D47A1"
+    owners: {technical: [data_engineering], business: [event_programming]}
+  - id: sales
+    tag_key: sales
+    display_name: Sales and Ticketing
+    subtitle: Every ticket sale, fee, profit and payment
+    description: The ticket ledger (primary, resale, buyback and company resale), fees, owned-inventory profit, and installment payment plans.
+    icon: TICKET
+    color: "#B71C1C"
+    owners: {technical: [data_engineering], business: [sales_ops]}
+    subdomains:
+      - id: sales/ledger
+        tag_key: sales/ledger
+        display_name: Ticket Ledger
+        subtitle: Who owned each ticket, and what every transfer earned
+        description: One row per ownership transfer, with fees, buyback cost and profit.
+      - id: sales/payments
+        tag_key: sales/payments
+        display_name: Payments and Plans
+        subtitle: Installment plans and closed sales
+        description: Orders, payment attempts, refunds, and the closed-sale definition (80 percent recouped).
+  - id: customer
+    tag_key: customer
+    display_name: Customer and Identity
+    subtitle: Who customers are and how they behave on the site
+    description: Customer records, identity resolution across devices and logins, site visits, be-backs and the prices customers saw.
+    icon: USERS_THREE
+    color: "#4A148C"
+    owners: {technical: [data_engineering], business: [marketing_analytics]}
+    subdomains:
+      - id: customer/identity
+        tag_key: customer/identity
+        display_name: Identity Resolution
+        subtitle: Records, browsers and people
+        description: How duplicate customer records and anonymous browsers are linked to one person, and how much we trust each link.
+      - id: customer/engagement
+        tag_key: customer/engagement
+        display_name: Site Engagement
+        subtitle: Visits, be-backs and price at visit
+        description: Web analytics measures built on resolved visitors.
+  - id: data_platform
+    tag_key: data_platform
+    display_name: Data Platform
+    subtitle: How the lakehouse itself works
+    description: "Platform terms every data user meets: medallion layers, data contracts, data products, quarantine."
+    icon: CUBE_TRANSPARENT
+    color: "#37474F"
+    owners: {technical: [data_engineering], business: [data_governance]}

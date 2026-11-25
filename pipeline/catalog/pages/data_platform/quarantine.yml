@@ -1,0 +1,13 @@
+page: quarantine
+domain: data_platform
+title: Quarantine
+synonyms:
+- rejected rows
+description: Where rows that break a rule are kept, with their original record and the reason.
+owner: data_governance
+state: published
+related_assets: []
+sources: []
+body: |
+  ## Definition
+  A rejected row is removed from the clean table and written to the quarantine table with its original record, the rule ids that rejected it, and a status. It is returned to the source owner to fix; nothing is silently deleted.

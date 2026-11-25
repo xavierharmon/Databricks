@@ -1,0 +1,16 @@
+team_id,team_name,city,league,founded_year,home_park,payroll_cap_musd,mascot
+T01,Harbor City Gulls,Harbor City,North,2008,Gull Park,180.0,Gus the Gull
+T02,Ironvale Forgemen,Ironvale,North,2008,Anvil Field,150.0,Sparky
+T03,Pinecrest Timberwolves,Pinecrest,North,2010,Timberline Park,120.0,
+T04,Lakeshore Mariners,Lakeshore,North,2012,Mariner Yard,140.0,Captain Wave
+T05,Sandhill Scorpions,Sandhill,South,2008,Dune Stadium,160.0,Stinger
+T06,Redrock Coyotes,Redrock,south,2010,Canyon Park,110.0,
+T07,Mesaverde Falcons,Mesaverde,South,2012,Falcon Heights,130.0,Talon
+T08,Bayou Bullfrogs,Bayou Town,South,2015,Lily Pad Park,100.0,Ribbit
+T05,Sandhill Scorpions,Sandhill,South,2008,Dune Stadium,160.0,Stinger
+T09,Summit Peaks,Summit,North,2016,Peak Field,125.0,Yeti
+T09,Summit Peaks,Summit,North,2017,Peak Field,125.0,Yeti
+T10,,Glenwood,South,2014,Glen Park,105.0,
+T11,Future Fleet,Newport,North,2099,Wave Field,115.0,
+T12,Coastal Kings,Coastal,XX,2013,King Field,135.0,
+T13,Broke Bears,Bearton,South,2011,Den Park,-50.0,

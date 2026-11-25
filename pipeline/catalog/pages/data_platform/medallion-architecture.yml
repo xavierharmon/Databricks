@@ -1,0 +1,16 @@
+page: medallion-architecture
+domain: data_platform
+title: Medallion architecture
+synonyms: []
+description: Bronze, silver and gold layers, each with one job.
+owner: data_governance
+state: published
+related_assets: []
+sources: []
+body: |
+  | Layer | Job |
+  | --- | --- |
+  | Bronze | Land data as delivered, all text. Nothing is judged. |
+  | Silver | Type, clean, deduplicate, apply quality rules. Bad rows are quarantined, not deleted. |
+  | Gold | Business-ready tables, audited in staging before they are published. |
+  | Semantic | Governed metric views over gold. |
